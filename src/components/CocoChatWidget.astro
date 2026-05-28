@@ -38,7 +38,7 @@
       </div>
     </div>
     
-    <div id="coco-loading-state" class="hidden">
+    <div id="coco-loading-state" style="display:none">
       <div class="coco-progress-wrap">
         <div class="coco-progress-header">
           <span class="type-label-md" id="coco-loading-text">Memuat Kompendium...</span>
@@ -221,7 +221,7 @@
   const loadData = async () => {
     if (isDataLoaded || isFetchingData) return;
     isFetchingData = true;
-    loadingState.classList.remove('hidden');
+    loadingState.style.display = 'flex';
     loadingText.textContent = "Memuat Kompendium...";
     setProgress(0);
     
@@ -264,9 +264,9 @@
       isFetchingData = false;
       // Short delay so user sees 100%
       setTimeout(() => {
-        loadingState.classList.add('hidden');
+        loadingState.style.display = 'none';
         chatInput.focus();
-      }, 300);
+      }, 400);
     }
   };
 
