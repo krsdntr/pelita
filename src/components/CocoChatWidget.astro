@@ -1,0 +1,485 @@
+---
+---
+<div id="coco-widget-container">
+  <!-- Floating Action Button -->
+  <button id="coco-fab" aria-label="Buka obrolan COCO" title="Ngobrol dengan COCO">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+      <path d="M9.5 9h5"></path>
+      <path d="M9.5 13h2"></path>
+    </svg>
+  </button>
+
+  <!-- Chat Modal -->
+  <div id="coco-chat-modal" class="hidden">
+    <div class="coco-header">
+      <div class="coco-title-area">
+        <h3 class="type-title-md">COCO</h3>
+        <p class="type-label-md">Compendium Companion &amp; Bible AI</p>
+      </div>
+      <button id="coco-close-btn" aria-label="Tutup COCO">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+    
+    <div id="coco-chat-history" class="coco-body">
+      <!-- Chat messages will be injected here -->
+      <div class="chat-message assistant" style="align-self: flex-start; display: flex; flex-direction: column; align-items: flex-start;">
+        <div class="message-bubble" style="padding: 1rem 1.25rem; max-width: 85%; border-radius: 0px 0.5rem 0.5rem; background: var(--surface-container-high); color: var(--on-surface);">
+          <div class="type-body-md markdown-chat-content" style="line-height: 1.5; margin: 0px;">Halo! Saya COCO. Anda bisa bertanya apa saja seputar Alkitab atau ajaran Katolik. Ada yang bisa saya bantu hari ini?</div>
+        </div>
+      </div>
+    </div>
+    
+    <div id="coco-loading-state" class="hidden">
+      <div class="spinner"></div>
+      <span class="type-label-md" id="coco-loading-text">Menyiapkan sumber hikmat...</span>
+    </div>
+
+    <div class="coco-footer">
+      <div class="coco-input-wrapper">
+        <input type="text" id="coco-chat-input" placeholder="Ketik pertanyaan Anda di sini..." class="type-body-md" autocomplete="off" />
+        <button id="coco-send-btn" aria-label="Kirim pesan">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+        </button>
+      </div>
+      <div class="coco-meta">
+        <span class="type-label-md" style="opacity:0.6;">Sisa pesan hari ini: <span id="coco-chat-limit">20</span></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script is:inline src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+  // ----------------------------------------
+  // COCO AI CHATBOT LOGIC (DUAL RAG)
+  // ----------------------------------------
+  const fab = document.getElementById('coco-fab');
+  const modal = document.getElementById('coco-chat-modal');
+  const closeBtn = document.getElementById('coco-close-btn');
+  const chatInput = document.getElementById('coco-chat-input') as HTMLInputElement;
+  const chatSendBtn = document.getElementById('coco-send-btn') as HTMLButtonElement;
+  const chatHistory = document.getElementById('coco-chat-history');
+  const chatTokenLimitEl = document.getElementById('coco-chat-limit');
+  const loadingState = document.getElementById('coco-loading-state');
+  const loadingText = document.getElementById('coco-loading-text');
+
+  const GROQ_API_KEY = import.meta.env.PUBLIC_GROQ_API_KEY || "";
+  const MAX_DAILY_MESSAGES = 20;
+
+  let compendiumData = null;
+  let bibleData = null;
+  let isDataLoaded = false;
+  let isFetchingData = false;
+
+  const checkDailyLimit = () => {
+    const today = new Date().toDateString();
+    const storedData = JSON.parse(localStorage.getItem('romo_ai_limit') || '{}');
+    if (storedData.date !== today) {
+      return MAX_DAILY_MESSAGES;
+    }
+    return storedData.remaining ?? MAX_DAILY_MESSAGES;
+  };
+
+  const updateDailyLimit = (remaining) => {
+    const today = new Date().toDateString();
+    localStorage.setItem('romo_ai_limit', JSON.stringify({ date: today, remaining }));
+    if (chatTokenLimitEl) chatTokenLimitEl.textContent = remaining.toString();
+    
+    if (remaining <= 0) {
+      chatInput.disabled = true;
+      chatSendBtn.disabled = true;
+      chatInput.placeholder = "Batas harian tercapai. Coba besok ya!";
+      chatSendBtn.style.opacity = '0.5';
+    }
+  };
+
+  let currentRemaining = checkDailyLimit();
+  updateDailyLimit(currentRemaining);
+
+  const appendMessage = (text, sender) => {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `chat-message ${sender}`;
+    
+    const isUser = sender === 'user';
+    msgDiv.style.alignSelf = isUser ? 'flex-end' : 'flex-start';
+    msgDiv.style.display = 'flex';
+    msgDiv.style.flexDirection = 'column';
+    msgDiv.style.alignItems = isUser ? 'flex-end' : 'flex-start';
+    
+    const bubble = document.createElement('div');
+    bubble.className = 'message-bubble';
+    bubble.style.padding = '1rem 1.25rem';
+    bubble.style.maxWidth = '85%';
+    bubble.style.borderRadius = isUser ? 'var(--radius-md) var(--radius-md) 0 var(--radius-md)' : '0 var(--radius-md) var(--radius-md) var(--radius-md)';
+    bubble.style.background = isUser ? 'var(--color-primary)' : 'var(--surface-container-high)';
+    bubble.style.color = isUser ? 'white' : 'var(--on-surface)';
+    
+    // @ts-ignore
+    let formattedText = typeof marked !== 'undefined' ? marked.parse(text) : text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>');
+    
+    bubble.innerHTML = `<div class="type-body-md markdown-chat-content" style="line-height: 1.5; margin: 0;">${formattedText}</div>`;
+    msgDiv.appendChild(bubble);
+    chatHistory.appendChild(msgDiv);
+    
+    setTimeout(() => {
+      chatHistory.scrollTop = chatHistory.scrollHeight;
+    }, 50);
+    
+    return msgDiv; // Return to allow removal if it's a loading bubble
+  };
+
+  let chatMemory = [];
+  const MAX_MEMORY = 10;
+
+  const getStopWords = () => ['apa', 'itu', 'dan', 'yang', 'di', 'ke', 'dari', 'bagaimana', 'mengapa', 'adalah', 'untuk', 'dengan', 'dalam', 'karena', 'maka', 'siapa', 'kapan', 'dimana'];
+
+  const searchCatechismContext = (query) => {
+    if (!compendiumData) return "";
+    const keywords = query.toLowerCase().replace(/[^\w\s]/gi, '').split(' ').filter(w => w.length > 2 && !getStopWords().includes(w));
+    if (keywords.length === 0) keywords.push(query.toLowerCase());
+
+    let matches = [];
+    compendiumData.forEach(pillar => {
+      pillar.questions.forEach(qa => {
+        let score = 0;
+        const qText = qa.question.toLowerCase();
+        const aText = qa.answer.toLowerCase();
+        keywords.forEach(kw => {
+          if (qText.includes(kw)) score += 2;
+          if (aText.includes(kw)) score += 1;
+        });
+        if (score > 0) matches.push({ score, text: `Tanya: ${qa.question}\nJawab: ${qa.answer}\nRef: ${qa.reference}` });
+      });
+    });
+    matches.sort((a, b) => b.score - a.score);
+    return matches.slice(0, 3).map(m => m.text).join("\n\n");
+  };
+
+  const searchBibleContext = (query) => {
+    if (!bibleData) return "";
+    const keywords = query.toLowerCase().replace(/[^\w\s]/gi, '').split(' ').filter(w => w.length > 2 && !getStopWords().includes(w));
+    if (keywords.length === 0) keywords.push(query.toLowerCase());
+
+    let matches = [];
+    bibleData.forEach(verse => {
+      let score = 0;
+      const vText = verse.t.toLowerCase();
+      keywords.forEach(kw => {
+        if (vText.includes(kw)) score += 1;
+      });
+      if (score > 0) matches.push({ score, text: `Kitab: ${verse.n} ${verse.c}:${verse.v}\nTeks: ${verse.t}` });
+    });
+    matches.sort((a, b) => b.score - a.score);
+    return matches.slice(0, 5).map(m => m.text).join("\n\n");
+  };
+
+  const GROQ_MODELS = [
+    "llama-3.3-70b-versatile",
+    "llama-3.1-8b-instant",
+    "mixtral-8x7b-32768",
+    "gemma2-9b-it"
+  ];
+
+  const fetchGroqChat = async (messages) => {
+    let lastError = null;
+    for (const model of GROQ_MODELS) {
+      try {
+        const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${GROQ_API_KEY}` },
+          body: JSON.stringify({ model: model, messages: messages })
+        });
+        const data = await res.json();
+        if (res.ok && data.choices && data.choices[0]) return data;
+        lastError = data.error?.message || JSON.stringify(data);
+        if (res.status === 401) break; 
+        console.warn(`[COCO] Model ${model} gagal: ${lastError}`);
+        continue;
+      } catch (err) {
+        lastError = err.message;
+        continue; 
+      }
+    }
+    throw new Error(lastError || "Seluruh model AI gagal merespons.");
+  };
+
+  const loadData = async () => {
+    if (isDataLoaded || isFetchingData) return;
+    isFetchingData = true;
+    loadingState.classList.remove('hidden');
+    chatInput.disabled = true;
+    
+    try {
+      loadingText.textContent = "Mengunduh Kompendium...";
+      const resComp = await fetch('/data/catechism-compendium.json');
+      compendiumData = await resComp.json();
+
+      loadingText.textContent = "Mengunduh Indeks Alkitab (~6MB)...";
+      const resBible = await fetch('/data/search-index.json');
+      bibleData = await resBible.json();
+      
+      isDataLoaded = true;
+    } catch (e) {
+      console.error("Gagal memuat data:", e);
+      appendMessage("Maaf, gagal memuat sumber referensi. Mohon periksa koneksi internet Anda.", "assistant");
+    } finally {
+      isFetchingData = false;
+      loadingState.classList.add('hidden');
+      chatInput.disabled = currentRemaining <= 0;
+      if (!chatInput.disabled) chatInput.focus();
+    }
+  };
+
+  const handleSendMessage = async () => {
+    const text = chatInput.value.trim();
+    if (!text || currentRemaining <= 0) return;
+    
+    appendMessage(text, 'user');
+    chatInput.value = '';
+    currentRemaining--;
+    updateDailyLimit(currentRemaining);
+    
+    const loadingBubble = appendMessage("Berpikir...", 'assistant');
+
+    try {
+      // Async yield for RAG logic so UI updates
+      await new Promise(r => setTimeout(r, 10));
+      
+      const compContext = searchCatechismContext(text);
+      const bibleContext = searchBibleContext(text);
+      
+      const systemPrompt = `Anda adalah COCO (Compendium Companion), asisten Katolik virtual di "The Sacred Library". 
+Jawablah dengan penuh kasih, ringkas, dan berwibawa.
+
+ATURAN SITASI WAJIB:
+- Jika Anda mengutip dari Alkitab atau Kompendium dari konteks di bawah ini, Anda WAJIB mencantumkan referensinya di akhir kalimat/jawaban Anda (misal: "Menurut Kejadian 1:1..." atau "Bdk. KGK 123").
+- Jangan berhalusinasi. Jawablah sesuai konteks yang disediakan atau teologi Katolik yang benar. Jika di luar ajaran, tolak dengan halus.
+
+KONTEKS ALKITAB:
+---
+${bibleContext}
+---
+
+KONTEKS KOMPENDIUM:
+---
+${compContext}
+---`;
+
+      let apiMessages = [{ role: "system", content: systemPrompt }];
+      apiMessages.push(...chatMemory);
+      apiMessages.push({ role: "user", content: text });
+
+      const data = await fetchGroqChat(apiMessages);
+      loadingBubble.remove();
+      
+      const answerText = data.choices[0].message.content;
+      appendMessage(answerText, 'assistant');
+      
+      chatMemory.push({ role: "user", content: text });
+      chatMemory.push({ role: "assistant", content: answerText });
+      
+      if (chatMemory.length > MAX_MEMORY) chatMemory = chatMemory.slice(chatMemory.length - MAX_MEMORY);
+    } catch (err) {
+      loadingBubble.remove();
+      appendMessage(`Maaf, terjadi kesalahan: ${err.message}`, 'assistant');
+      currentRemaining++;
+      updateDailyLimit(currentRemaining);
+    }
+  };
+
+  // Event Listeners
+  fab.addEventListener('click', () => {
+    modal.classList.remove('hidden');
+    fab.classList.add('hidden');
+    if (!isDataLoaded) loadData();
+    else chatInput.focus();
+  });
+
+  closeBtn.addEventListener('click', () => {
+    modal.classList.add('hidden');
+    fab.classList.remove('hidden');
+  });
+
+  chatSendBtn.addEventListener('click', handleSendMessage);
+  chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') handleSendMessage();
+  });
+</script>
+
+<style>
+  /* FAB Styles */
+  #coco-fab {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    box-shadow: var(--shadow-ambient);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  #coco-fab:hover {
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 10px 25px rgba(68, 42, 34, 0.3);
+  }
+  #coco-fab svg {
+    width: 28px;
+    height: 28px;
+  }
+  #coco-fab.hidden {
+    display: none;
+  }
+
+  /* Modal Styles */
+  #coco-chat-modal {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 380px;
+    max-width: calc(100vw - 2rem);
+    height: 600px;
+    max-height: calc(100vh - 4rem);
+    background: var(--surface);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-ambient);
+    display: flex;
+    flex-direction: column;
+    z-index: 10000;
+    overflow: hidden;
+    border: 1px solid var(--outline-variant);
+  }
+  #coco-chat-modal.hidden {
+    display: none;
+  }
+
+  .coco-header {
+    background: var(--color-primary);
+    color: white;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .coco-title-area h3 {
+    margin: 0;
+    font-size: 1.25rem;
+  }
+  .coco-title-area p {
+    margin: 0;
+    opacity: 0.8;
+  }
+  #coco-close-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    opacity: 0.8;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: background 0.2s;
+  }
+  #coco-close-btn:hover {
+    opacity: 1;
+    background: rgba(255,255,255,0.1);
+  }
+
+  .coco-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    background: var(--surface-container-lowest);
+  }
+
+  #coco-loading-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--surface-container-low);
+    color: var(--on-surface-variant);
+    font-size: 0.875rem;
+  }
+  .spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--outline-variant);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .coco-footer {
+    padding: 1rem;
+    background: var(--surface);
+    border-top: 1px solid var(--outline-variant);
+  }
+  .coco-input-wrapper {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  #coco-chat-input {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--outline-variant);
+    background: var(--surface-container-lowest);
+    color: var(--on-surface);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  #coco-chat-input:focus {
+    border-color: var(--color-primary);
+  }
+  #coco-send-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+  #coco-send-btn:hover {
+    background: var(--color-secondary);
+  }
+  #coco-send-btn:disabled {
+    background: var(--surface-container-highest);
+    cursor: not-allowed;
+  }
+
+  .coco-meta {
+    text-align: center;
+  }
+
+  @media (max-width: 480px) {
+    #coco-chat-modal {
+      bottom: 0;
+      right: 0;
+      width: 100vw;
+      max-width: 100vw;
+      height: 100vh;
+      max-height: 100vh;
+      border-radius: 0;
+    }
+  }
+</style>

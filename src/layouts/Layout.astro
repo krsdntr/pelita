@@ -4,6 +4,8 @@ interface Props {
 	description?: string;
 }
 
+import CocoChatWidget from '../components/CocoChatWidget.astro';
+
 const { title, description = "Aplikasi Iman Katolik — Pelita" } = Astro.props;
 ---
 
@@ -42,6 +44,7 @@ const { title, description = "Aplikasi Iman Katolik — Pelita" } = Astro.props;
 	</head>
 	<body>
 		<slot />
+		<CocoChatWidget />
 	</body>
 </html>
 

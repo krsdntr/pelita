@@ -9,7 +9,7 @@ export default defineConfig({
       workbox: {
         globDirectory: 'dist',
         globPatterns: ['**/*.{js,css,svg,png,jpg,jpeg,gif,json,html,ico,txt,woff2}'],
-        maximumFileSizeToCacheInBytes: 4000000,
+        maximumFileSizeToCacheInBytes: 10000000,
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
