@@ -1,0 +1,233 @@
+---
+interface Props {
+	title: string;
+	description?: string;
+}
+
+const { title, description = "Aplikasi Iman Katolik — Pelita" } = Astro.props;
+---
+
+<!doctype html>
+<html lang="id" data-theme="light">
+	<head>
+		<script is:inline>
+			const savedTheme = localStorage.getItem('alkitab_theme') || 'light';
+			document.documentElement.setAttribute('data-theme', savedTheme);
+			const savedTextSize = localStorage.getItem('alkitab_textSize') || '16';
+			document.documentElement.style.setProperty('--type-body-lg', (parseInt(savedTextSize) / 16) + 'rem');
+		</script>
+		<meta charset="UTF-8" />
+		<meta name="description" content={description} />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="generator" content={Astro.generator} />
+		<title>{title} | Pelita</title>
+
+		<!-- OpenGraph -->
+		<meta property="og:title" content={`${title} | Pelita`} />
+		<meta property="og:description" content={description} />
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content="Pelita" />
+
+		<!-- Google Fonts: Newsreader (Serif) + Inter (Sans) -->
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+		<!-- PWA Manifest -->
+		<link rel="manifest" href="/manifest.webmanifest" />
+		<meta name="theme-color" content="#faf9f8" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+	</head>
+	<body>
+		<slot />
+	</body>
+</html>
+
+<style is:global>
+	/* ============================================================
+	   DESIGN SYSTEM: The Sacred Library
+	   From DESIGN.md – "The Digital Sanctuary"
+	   ============================================================ */
+
+	:root {
+		/* --- Core Brand Tokens (DESIGN.md §2) --- */
+		--color-primary:            #442a22; /* Mahogany */
+		--color-primary-container:  #f0d9c8;
+		--color-secondary:          #7d5a50;
+		--color-tertiary:           #373023; /* Ink */
+		--color-tertiary-fixed-dim: #e8e0d5;
+		--color-error:              #8c2a2a;
+
+		/* --- Surface Hierarchy (DESIGN.md §2 "Surface Hierarchy") --- */
+		--surface:                  #faf9f8; /* Parchment */
+		--surface-container-lowest: #ffffff;
+		--surface-container-low:    #f5f3f1;
+		--surface-container:        #eeeae6;
+		--surface-container-high:   #e5e0da;
+		--surface-container-highest:#ddd8d0;
+		--surface-variant:          rgba(250,249,248,0.70); /* for glass */
+
+		/* --- Dark Mode Surfaces (inverse-surface, no pure black) --- */
+		--inverse-surface:          #1e1a17;
+		--inverse-on-surface:       #f5efe9;
+
+		/* --- Text Colors (Maximum contrast) --- */
+		--on-surface:               #211613; /* Deepest Ink/Brown */
+		--on-surface-variant:       #3d3431; /* Dark Muted Brown */
+		--on-primary:               #ffffff;
+		--outline-variant:          rgba(44,26,22,0.12); /* 12% — Ghost Border */
+
+		/* --- Typography (DESIGN.md §3) --- */
+		--font-serif:  'Newsreader', 'Georgia', serif;
+		--font-sans:   'Inter', system-ui, -apple-system, sans-serif;
+
+		--type-display-lg:   3.5rem;   /* Newsreader, book/chapter titles */
+		--type-title-lg:     1.375rem; /* Newsreader, verse highlights */
+		--type-body-lg:      1rem;     /* Newsreader, reading body */
+		--type-label-md:     0.75rem;  /* Inter, all-caps UI metadata */
+
+		/* --- Elevation / Shadows (DESIGN.md §4 "Ambient Shadows") --- */
+		--shadow-ambient:  0px 20px 40px rgba(30,26,23,0.06);
+		--shadow-subtle:   0px 4px 16px rgba(30,26,23,0.05);
+
+		/* --- Spacing & Shape --- */
+		--radius-sm:   0.25rem;
+		--radius-md:   0.5rem;
+		--radius-lg:   0.75rem;
+		--radius-xl:   1.25rem;
+		--radius-full: 9999px;
+
+		/* --- Motion --- */
+		--ease-out-expo: cubic-bezier(0.19,1,0.22,1);
+		--duration-fast:   180ms;
+		--duration-normal: 320ms;
+	}
+
+	/* ============================================================
+	   DARK MODE — using inverse-surface, NOT pure black
+	   ============================================================ */
+	[data-theme="dark"] {
+		--surface:                  #1e1a17;
+		--surface-container-lowest: #171310;
+		--surface-container-low:    #252119;
+		--surface-container:        #2e2920;
+		--surface-container-high:   #383028;
+		--surface-container-highest:#433830;
+		--surface-variant:          rgba(30,26,23,0.80);
+		--on-surface:               #f0ece6;
+		--on-surface-variant:       #c9bfb4;
+		--outline-variant:          rgba(240,236,230,0.15);
+		--color-primary:            #ffbda8;
+		--color-secondary:          #cfa69b;
+	}
+
+	/* ============================================================
+	   SOFT / ZEN MODE
+	   ============================================================ */
+	[data-theme="soft"] {
+		--surface:                  #f5ede8;
+		--surface-container-lowest: #fff7f3;
+		--surface-container-low:    #f0e0d8;
+		--surface-container:        #e8d0c5;
+		--on-surface:               #2e1f1a;
+		--on-surface-variant:       #6b4a3e;
+	}
+
+	[data-theme="zen"] {
+		--surface:                  #fce8e8;
+		--surface-container-lowest: #fff5f5;
+		--surface-container-low:    #f5d8d8;
+		--surface-container:        #edc9c9;
+		--on-surface:               #2e1a1a;
+		--on-surface-variant:       #7a3c3c;
+	}
+
+	/* ============================================================
+	   GLOBAL RESET & BASE
+	   ============================================================ */
+	*, *::before, *::after {
+		box-sizing: border-box;
+		margin: 0;
+		padding: 0;
+	}
+
+	html {
+		font-family: var(--font-sans);
+		background-color: var(--surface);
+		color: var(--on-surface);
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+		transition: background-color var(--duration-normal) var(--ease-out-expo),
+		            color var(--duration-normal) var(--ease-out-expo);
+		scroll-behavior: smooth;
+	}
+
+	body {
+		min-height: 100vh;
+		min-height: 100dvh;
+	}
+
+	/* DO NOT select UI chrome, only scripture text */
+	body { user-select: none; -webkit-user-select: none; }
+	.selectable { user-select: text; -webkit-user-select: text; }
+
+	/* ============================================================
+	   TYPOGRAPHY SCALE (DESIGN.md §3)
+	   ============================================================ */
+	.type-display-lg {
+		font-family: var(--font-serif);
+		font-size: var(--type-display-lg);
+		letter-spacing: -0.02em;
+		line-height: 1.1;
+		font-weight: 400;
+	}
+	.type-title-lg {
+		font-family: var(--font-serif);
+		font-size: var(--type-title-lg);
+		line-height: 1.4;
+		font-weight: 600;
+	}
+	.type-body-lg {
+		font-family: var(--font-serif);
+		font-size: var(--type-body-lg);
+		line-height: 1.6; /* "Sanctuary" spaciousness */
+		font-weight: 400;
+	}
+	.type-label-md {
+		font-family: var(--font-sans);
+		font-size: var(--type-label-md);
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		font-weight: 500;
+	}
+
+	/* ============================================================
+	   LAYOUT UTILITIES
+	   ============================================================ */
+	.container {
+		max-width: 1280px;
+		margin: 0 auto;
+		padding: 0 clamp(16px, 4vw, 48px);
+	}
+	.container-narrow {
+		max-width: 800px;
+		margin: 0 auto;
+		padding: 0 clamp(16px, 4vw, 48px);
+	}
+
+	a { color: inherit; text-decoration: none; }
+	button { cursor: pointer; font-family: inherit; }
+	img { max-width: 100%; display: block; }
+
+	/* Smooth page transitions */
+	@media (prefers-reduced-motion: no-preference) {
+		::view-transition-old(root) { animation-duration: 300ms; }
+		::view-transition-new(root) { animation-duration: 300ms; }
+	}
+
+	.no-scroll {
+		overflow: hidden !important;
+	}
+</style>

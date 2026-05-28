@@ -1,0 +1,926 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import StatsHeader from '../../components/StatsHeader.astro';
+import Footer from '../../components/Footer.astro';
+import fs from 'fs';
+import path from 'path';
+
+// Pre-render all 73 Catholic books
+export async function getStaticPaths() {
+  const metaPath = path.resolve('./src/data/bible-metadata.json');
+  const books = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+  
+  return books.map((book, index) => {
+    const prevBook = index > 0 ? books[index - 1] : null;
+    const nextBook = index < books.length - 1 ? books[index + 1] : null;
+    
+    return {
+      params: { book: book.id },
+      props: {
+        book,
+        prevBook,
+        nextBook
+      }
+    };
+  });
+}
+
+const { book, prevBook, nextBook } = Astro.props;
+
+// Load the rich Catholic summaries JSON
+const summariesPath = path.resolve('./src/data/catholic-summaries.json');
+const summaries = JSON.parse(fs.readFileSync(summariesPath, 'utf8'));
+const summary = summaries[book.id] || {
+  quote: "Teks pengantar iman Katolik.",
+  tagline: `Panduan Kitab ${book.name}`,
+  overview: `Kitab ${book.name} adalah bagian dari ${book.category}.`,
+  author: "Penulis Tradisional",
+  date: "Abad Kuno",
+  context: "Informasi sejarah belum terisi.",
+  theology: "Informasi teologi belum terisi.",
+  structure: [],
+  goldenVerses: []
+};
+
+// Formatting helper
+const formatText = (text: string) => {
+  return text.split('\n').map(p => {
+    if (p.startsWith('*')) {
+      return `<li>${p.replace(/^\*\s*/, '')}</li>`;
+    }
+    // Handle markdown-style bold
+    let formatted = p.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    return `<p class="paragraph">${formatted}</p>`;
+  }).join('');
+};
+---
+
+<Layout title={`Panduan ${book.name}`} description={summary.tagline}>
+  <StatsHeader />
+  
+  <book-guide 
+    data-book-id={book.id}
+    data-book-name={book.name}
+    class="guide-wrapper"
+  >
+    <div class="editorial-container container-narrow">
+      
+      <!-- Top Hero Section -->
+      <header class="book-hero">
+        <span class="type-label-md category-tag">{book.subCategory} &bull; {book.category}</span>
+        <h1 class="type-display-lg book-hero-title">{book.name}</h1>
+        <p class="tagline type-body-lg italic">"{summary.quote}"</p>
+        <p class="sub-tagline type-label-md">{summary.tagline}</p>
+        
+        <!-- Metadata Pill Blocks -->
+        <div class="meta-pills">
+          <div class="meta-pill">
+            <span class="pill-title">PENULIS</span>
+            <span class="pill-value">{summary.author}</span>
+          </div>
+          <div class="meta-pill">
+            <span class="pill-title">WAKTU</span>
+            <span class="pill-value">{summary.date}</span>
+          </div>
+          <div class="meta-pill">
+            <span class="pill-title">BAGIAN</span>
+            <span class="pill-value">{book.chapters} Bab</span>
+          </div>
+        </div>
+
+        <div class="read-action-container" style="margin-top: 2rem; width: 100%; max-width: 600px;">
+          <a href={`/read/${book.id}/1`} class="start-reading-btn">
+            MULAI MEMBACA KESELURUHAN TEKS
+          </a>
+        </div>
+      </header>
+
+      <!-- Sticky Tabbed Navigation -->
+      <nav class="editorial-tabs" id="stickyTabs">
+        <button class="tab-btn active" data-tab="overview">GERBANG</button>
+        <button class="tab-btn" data-tab="history">SEJARAH</button>
+        <button class="tab-btn" data-tab="theology">TEOLOGI</button>
+        <button class="tab-btn" data-tab="structure">STRUKTUR</button>
+        <button class="tab-btn" data-tab="devotional">RENUNGAN</button>
+      </nav>
+
+      <!-- Tab Content Area -->
+      <div class="tab-view-canvas">
+        
+        <!-- Tab 1: Overview -->
+        <section class="tab-content active" id="content-overview">
+          <h2 class="type-title-lg section-title">Pintu Gerbang Kitab</h2>
+          <div class="editorial-text select-text" set:html={formatText(summary.overview)}></div>
+        </section>
+
+        <!-- Tab 2: History -->
+        <section class="tab-content" id="content-history">
+          <h2 class="type-title-lg section-title">Lembah Sejarah & Konteks</h2>
+          <div class="editorial-text select-text" set:html={formatText(summary.context)}></div>
+        </section>
+
+        <!-- Tab 3: Theology -->
+        <section class="tab-content" id="content-theology">
+          <h2 class="type-title-lg section-title">Ruang Teologi & Iman Katolik</h2>
+          <div class="editorial-text select-text theology-block select-text" set:html={formatText(summary.theology)}></div>
+        </section>
+
+        <!-- Tab 4: Structure -->
+        <section class="tab-content" id="content-structure">
+          <h2 class="type-title-lg section-title">Jalan Narasi & Rangkuman Bab</h2>
+          <div class="structure-list">
+            {summary.structure.map((item: any) => (
+              <div class="structure-card">
+                <div class="struct-meta">
+                  <span class="type-label-md chapters-tag">Bab {item.chapters}</span>
+                  <h3 class="type-title-lg struct-title">{item.title}</h3>
+                </div>
+                <p class="type-body-lg struct-desc select-text">{item.summary}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <!-- Tab 5: Devotional -->
+        <section class="tab-content" id="content-devotional">
+          <h2 class="type-title-lg section-title">Suara Jiwa & Ayat Emas</h2>
+          <div class="verses-list">
+            {summary.goldenVerses.map((item: any, idx: number) => (
+              <div class="verse-card-wrap">
+                <div class="verse-vellum-card select-text" data-verse-ref={item.verse} data-verse-text={item.text}>
+                  <sup class="verse-num-badge">{idx + 1}</sup>
+                  <p class="type-title-lg verse-quote">"{item.text}"</p>
+                  <span class="type-label-md verse-source">{item.verse}</span>
+                </div>
+                <div class="verse-reflection">
+                  <span class="type-label-md ref-title">REFLEKSI IMAN KATOLIK</span>
+                  <p class="type-body-lg ref-text select-text">{item.reflection}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+      </div>
+
+      <!-- Book Footer Navigation -->
+      <footer class="guide-footer">
+        {prevBook ? (
+          <a href={`/read/${prevBook.id}`} class="footer-nav-link prev">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+            <div class="nav-details">
+              <span class="type-label-md font-tiny">SEBELUMNYA</span>
+              <span class="nav-book-name">{prevBook.name}</span>
+            </div>
+          </a>
+        ) : <div class="nav-spacer"></div>}
+
+        <a href="/" class="bookshelf-return-btn type-label-md">RAK BUKU</a>
+
+        {nextBook ? (
+          <a href={`/read/${nextBook.id}`} class="footer-nav-link next">
+            <div class="nav-details">
+              <span class="type-label-md font-tiny">SELANJUTNYA</span>
+              <span class="nav-book-name">{nextBook.name}</span>
+            </div>
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </a>
+        ) : <div class="nav-spacer"></div>}
+      </footer>
+
+    </div>
+
+    <!-- Share Card Modal -->
+    <div class="share-modal" id="shareModal">
+      <div class="share-modal-content">
+        <header class="modal-header">
+          <span class="type-label-md">BAGIKAN AYAT SUCI</span>
+          <button class="drawer-close-btn" id="closeShareModal" aria-label="Tutup">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </header>
+        
+        <div class="modal-body">
+          <!-- Canvas for generating the card image -->
+          <div class="canvas-container">
+            <canvas id="shareCanvas" width="500" height="500"></canvas>
+          </div>
+          
+          <div class="preview-verse-details" style="display: none;">
+            <p id="modalText"></p>
+            <span id="modalRef"></span>
+          </div>
+          
+          <button class="btn-primary type-label-md" id="downloadCardBtn" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; cursor: pointer;">
+            UNDUH KARTU GAMBAR
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16" style="display: inline-block;">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </book-guide>
+  <Footer />
+</Layout>
+
+<style>
+  .guide-wrapper {
+    display: block;
+    min-height: 100vh;
+    padding-top: 2rem;
+    padding-bottom: 8rem;
+    position: relative;
+  }
+  
+  .editorial-container {
+    background-color: transparent;
+  }
+  
+  /* Hero Section styling */
+  .book-hero {
+    text-align: center;
+    padding: 3rem 0;
+    margin-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .category-tag {
+    color: var(--color-secondary);
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    margin-bottom: 1rem;
+  }
+  
+  .book-hero-title {
+    color: var(--color-primary);
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+  
+  .tagline {
+    font-size: 1.15rem;
+    color: var(--on-surface);
+    opacity: 0.95;
+    max-width: 32rem;
+    line-height: 1.5;
+    margin-bottom: 0.5rem;
+  }
+  
+  .sub-tagline {
+    color: var(--on-surface-variant);
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    margin-bottom: 2rem;
+  }
+  
+  .meta-pills {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: center;
+    margin-top: 1rem;
+    width: 100%;
+  }
+  
+  .meta-pill {
+    background-color: var(--surface-container-low);
+    padding: 1.25rem 1.5rem;
+    border-radius: var(--radius-lg);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    box-shadow: var(--shadow-subtle);
+    border: 1px solid var(--outline-variant);
+    width: 100%;
+    max-width: 600px;
+  }
+  
+  .pill-title {
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    color: var(--color-secondary);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+  }
+  
+  .pill-value {
+    font-family: var(--font-serif);
+    font-size: 0.95rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--on-surface);
+  }
+  
+  .start-reading-btn {
+    display: block;
+    width: 100%;
+    padding: 1.25rem;
+    background-color: var(--color-primary);
+    color: var(--on-primary);
+    text-align: center;
+    border-radius: var(--radius-lg);
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    box-shadow: var(--shadow-ambient);
+    transition: transform var(--duration-fast), box-shadow var(--duration-fast);
+  }
+  
+  .start-reading-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-subtle);
+  }
+  
+  /* Sticky Tab Styling (DESIGN.md sectioning rules) */
+  .editorial-tabs {
+    display: flex;
+    justify-content: space-between;
+    position: sticky;
+    top: 76px; /* Below topbar */
+    background: var(--surface);
+    z-index: 40;
+    padding: 0.75rem 0.5rem;
+    margin-bottom: 3rem;
+    overflow-x: auto;
+    border-radius: var(--radius-md);
+    transition: background-color var(--duration-normal);
+  }
+  
+  .tab-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--on-surface-variant);
+    padding: 0.75rem 0.5rem;
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-align: center;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+    transition: all var(--duration-fast) var(--ease-out-expo);
+  }
+  
+  .tab-btn:hover {
+    color: var(--on-surface);
+  }
+  
+  .tab-btn.active {
+    background-color: var(--surface-container-high);
+    color: var(--color-primary);
+  }
+  
+  /* Tab View and Text */
+  .tab-view-canvas {
+    min-height: 300px;
+    margin-bottom: 4rem;
+  }
+  
+  .tab-content {
+    display: none;
+    animation: fadeIn var(--duration-normal) var(--ease-out-expo);
+  }
+  
+  .tab-content.active {
+    display: block;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .section-title {
+    color: var(--color-primary);
+    margin-bottom: 2rem;
+    font-weight: 700;
+  }
+  
+  .editorial-text {
+    font-family: var(--font-serif);
+    font-size: var(--type-body-lg, 1.05rem);
+    line-height: 1.7; /* Extra readable for Sanctuary */
+    color: var(--on-surface);
+    transition: font-size var(--duration-fast);
+  }
+  
+  :global(.paragraph) {
+    margin-bottom: 1.5rem;
+    text-indent: 1rem;
+  }
+  
+  :global(.editorial-text li) {
+    margin-bottom: 0.75rem;
+    margin-left: 1.5rem;
+    list-style-type: square;
+  }
+  
+  :global(.editorial-text strong) {
+    color: var(--color-primary);
+    font-weight: 600;
+  }
+  
+  .theology-block {
+    background-color: transparent;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  
+  /* Structure Cards */
+  .structure-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .structure-card {
+    background-color: var(--surface-container-low);
+    padding: 2rem;
+    border-radius: var(--radius-md);
+    transition: background-color var(--duration-fast), transform var(--duration-fast);
+  }
+  
+  .structure-card:hover {
+    background-color: var(--surface-container);
+    transform: translateY(-2px);
+  }
+  
+  .struct-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .chapters-tag {
+    color: var(--color-secondary);
+    font-weight: 700;
+  }
+  
+  .struct-title {
+    color: var(--color-primary);
+    font-weight: 700;
+  }
+  
+  .struct-desc {
+    font-family: var(--font-serif);
+    color: var(--on-surface);
+    opacity: 0.95;
+    line-height: 1.6;
+  }
+  
+  /* Verses & Devotional reflection */
+  .verses-list {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+  }
+  
+  .verse-card-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .verse-vellum-card {
+    background-color: var(--surface-container-lowest);
+    border-radius: var(--radius-lg);
+    padding: 2.5rem;
+    box-shadow: var(--shadow-ambient);
+    position: relative;
+    border-left: 4px solid var(--color-primary);
+    cursor: pointer;
+    transition: transform var(--duration-fast) var(--ease-out-expo);
+  }
+  
+  .verse-vellum-card:hover {
+    transform: scale(1.01);
+  }
+  
+  .verse-num-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    color: var(--on-surface-variant);
+    font-weight: 600;
+  }
+  
+  .verse-quote {
+    font-style: italic;
+    color: var(--color-primary);
+    line-height: 1.4;
+    margin-bottom: 1rem;
+  }
+  
+  .verse-source {
+    color: var(--on-surface-variant);
+    font-weight: 600;
+  }
+  
+  .verse-reflection {
+    padding: 0 1rem;
+    border-left: 2px solid var(--outline-variant);
+  }
+  
+  .ref-title {
+    color: var(--color-secondary);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    display: inline-block;
+  }
+  
+  .ref-text {
+    font-family: var(--font-serif);
+    color: var(--on-surface);
+    line-height: 1.6;
+  }
+  
+  /* Footer navigation */
+  .guide-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--outline-variant);
+    padding-top: 2rem;
+    margin-top: 5rem;
+  }
+  
+  .footer-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--on-surface);
+    text-decoration: none;
+    transition: color var(--duration-fast);
+  }
+  
+  .footer-nav-link:hover {
+    color: var(--color-primary);
+  }
+  
+  .nav-details {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .font-tiny {
+    font-size: 0.6rem;
+    color: var(--on-surface-variant);
+  }
+  
+  .nav-book-name {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+  
+  .bookshelf-return-btn {
+    padding: 0.75rem 1.5rem;
+    background-color: var(--surface-container-high);
+    border-radius: var(--radius-sm);
+    color: var(--on-surface);
+    font-weight: 600;
+    box-shadow: var(--shadow-subtle);
+    transition: all var(--duration-fast);
+  }
+  
+  .bookshelf-return-btn:hover {
+    background-color: var(--color-primary);
+    color: var(--on-primary);
+  }
+  
+  .nav-spacer { width: 100px; }
+  
+  /* Selectable Scripture text helper */
+  .select-text {
+    user-select: text !important;
+    -webkit-user-select: text !important;
+  }
+  
+  /* Float Settings Button removed from here */
+  
+  /* Drawer related classes removed */
+
+  /* Share Modal Styling */
+  .share-modal {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 150;
+    background-color: rgba(30, 26, 23, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: grid;
+    place-items: center;
+    padding: 2rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--duration-normal) var(--ease-out-expo);
+  }
+  
+  .share-modal.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  
+  .share-modal-content {
+    background-color: var(--surface);
+    border-radius: var(--radius-xl);
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 550px;
+    box-shadow: var(--shadow-ambient);
+    border: 1px solid var(--outline-variant);
+    animation: zoomIn 0.4s var(--ease-out-expo);
+  }
+  
+  @keyframes zoomIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+  
+  .canvas-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+    background-color: var(--surface-container-low);
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    box-shadow: inset 0px 2px 8px rgba(0,0,0,0.05);
+  }
+  
+  #shareCanvas {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-subtle);
+    background-color: #faf9f8;
+  }
+</style>
+
+<script>
+  class BookGuide extends HTMLElement {
+    constructor() {
+      super();
+    }
+    
+    connectedCallback() {
+      this.bookId = this.dataset.bookId;
+      this.bookName = this.dataset.bookName;
+      
+      this.state = {
+        theme: localStorage.getItem('alkitab_theme') || 'light',
+        textSize: parseInt(localStorage.getItem('alkitab_textSize') || '16'),
+      };
+      
+      this.applyTheme();
+      this.setupTabs();
+      this.setupControls();
+      this.setupBookmark();
+      this.setupShareModal();
+    }
+    
+    applyTheme() {
+      document.documentElement.setAttribute('data-theme', this.state.theme);
+    }
+    
+    setupTabs() {
+      const tabButtons = this.querySelectorAll('.tab-btn');
+      const tabContents = this.querySelectorAll('.tab-content');
+      
+      tabButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const target = (e.currentTarget as HTMLElement).dataset.tab;
+          
+          tabButtons.forEach(b => b.classList.remove('active'));
+          tabContents.forEach(c => c.classList.remove('active'));
+          
+          (e.currentTarget as HTMLElement).classList.add('active');
+          const targetContent = this.querySelector(`#content-${target}`);
+          if (targetContent) targetContent.classList.add('active');
+          
+          // Smooth scroll to top of tab view if needed
+          const tabsBar = this.querySelector('#stickyTabs');
+          if (tabsBar) {
+            tabsBar.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      });
+    }
+    
+    setupControls() {
+      // Listen to unified settings events from StatsHeader
+      window.addEventListener('global-theme-changed', (e: any) => {
+        this.state.theme = e.detail.theme;
+        this.applyTheme();
+      });
+    }
+
+    setupShareModal() {
+      const cards = this.querySelectorAll('.verse-vellum-card');
+      const modal = this.querySelector('#shareModal');
+      const closeBtn = this.querySelector('#closeShareModal');
+      const canvas = this.querySelector('#shareCanvas') as HTMLCanvasElement;
+      const downloadBtn = this.querySelector('#downloadCardBtn');
+      
+      let selectedVerse = { text: '', ref: '' };
+      
+      cards.forEach(card => {
+        card.addEventListener('click', (e) => {
+          const el = e.currentTarget as HTMLElement;
+          selectedVerse.ref = el.dataset.verseRef;
+          selectedVerse.text = el.dataset.verseText;
+          
+          const modalRef = this.querySelector('#modalRef');
+          const modalText = this.querySelector('#modalText');
+          if (modalRef) modalRef.textContent = selectedVerse.ref;
+          if (modalText) modalText.textContent = `"${selectedVerse.text}"`;
+          
+          if (modal) {
+            modal.classList.add('active');
+            document.body.classList.add('no-scroll');
+          }
+          this.drawCard(canvas, selectedVerse.text, selectedVerse.ref);
+        });
+      });
+      
+      const closeModal = () => {
+        if (modal) {
+          modal.classList.remove('active');
+          document.body.classList.remove('no-scroll');
+        }
+      };
+
+      if (closeBtn) {
+        closeBtn.addEventListener('click', closeModal);
+      }
+
+      if (modal) {
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) {
+            closeModal();
+          }
+        });
+      }
+      
+      if (downloadBtn && canvas) {
+        downloadBtn.addEventListener('click', () => {
+          const link = document.createElement('a');
+          link.download = `Ayat_${selectedVerse.ref.replace(/[\s:]/g, '_')}.png`;
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+        });
+      }
+    }
+
+    drawCard(canvas: HTMLCanvasElement, text: string, ref: string) {
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      
+      // Clear
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // 1. Latar Belakang (Fine Parchment Warm #faf9f8)
+      ctx.fillStyle = '#faf9f8';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // 2. Ornamen Garis Pembatas Minimalis (Mahogany #442a22, 20% Opacity)
+      ctx.strokeStyle = 'rgba(68, 42, 34, 0.2)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(30, 30, canvas.width - 60, canvas.height - 60);
+      
+      // Sub-pembatas tipis bagian dalam
+      ctx.strokeStyle = 'rgba(68, 42, 34, 0.08)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(36, 36, canvas.width - 72, canvas.height - 72);
+      
+      // 3. Teks Pembuka (Inter Sans-Serif, Muted)
+      ctx.fillStyle = '#7d5a50';
+      ctx.font = '600 12px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('THE SACRED LIBRARY', canvas.width / 2, 80);
+      
+      // 4. Ayat Utama (Georgia Serif, Mahogany #442a22, Italic)
+      ctx.fillStyle = '#211613';
+      ctx.font = 'italic 20px Georgia, serif';
+      
+      // Word wrap helper
+      const words = `"${text}"`.split(' ');
+      let line = '';
+      let lines = [];
+      const maxWidth = canvas.width - 120;
+      const lineHeight = 32;
+      
+      for (let n = 0; n < words.length; n++) {
+        let testLine = line + words[n] + ' ';
+        let metrics = ctx.measureText(testLine);
+        if (metrics.width > maxWidth && n > 0) {
+          lines.push(line);
+          line = words[n] + ' ';
+        } else {
+          line = testLine;
+        }
+      }
+      lines.push(line);
+      
+      // Calculate starting Y to center text
+      let startY = (canvas.height / 2) - ((lines.length - 1) * lineHeight / 2) - 10;
+      
+      for (let k = 0; k < lines.length; k++) {
+        ctx.fillText(lines[k].trim(), canvas.width / 2, startY + (k * lineHeight));
+      }
+      
+      // 5. Referensi Ayat (Sans-serif, Mahogany)
+      ctx.fillStyle = '#442a22';
+      ctx.font = '700 14px sans-serif';
+      ctx.fillText(ref.toUpperCase(), canvas.width / 2, startY + (lines.length * lineHeight) + 20);
+      
+      // 6. Watermark Logo / Salib Minimalis di Bawah
+      ctx.fillStyle = 'rgba(68, 42, 34, 0.3)';
+      ctx.font = '20px Georgia, serif';
+      ctx.fillText('†', canvas.width / 2, canvas.height - 75);
+    }
+    
+    setupBookmark() {
+      try {
+        let stats = JSON.parse(localStorage.getItem('alkitab_stats') || '{"totalSwipes": 0, "streak": 0, "bookProgress": {}, "exploredBooks": []}');
+        
+        // 1. Save Last Read bookmark
+        stats.lastRead = {
+          bookId: this.bookId,
+          bookName: this.bookName
+        };
+        
+        // 2. Mark this book as Explored
+        if (!stats.exploredBooks) stats.exploredBooks = [];
+        if (!stats.exploredBooks.includes(this.bookId)) {
+          stats.exploredBooks.push(this.bookId);
+        }
+        
+        // 3. Mark progress as 100% since they explored the guide
+        if (!stats.bookProgress) stats.bookProgress = {};
+        stats.bookProgress[this.bookId] = 100;
+        
+        // 4. Daily Streak calculations
+        const todayStr = new Date().toLocaleDateString('id-ID'); // "DD/MM/YYYY" format locally
+        const lastDate = stats.lastReadDate;
+        
+        if (!lastDate) {
+          stats.streak = 1;
+        } else if (lastDate !== todayStr) {
+          // Parse dates to check consecutive days
+          const parseDate = (dStr: string) => {
+            const parts = dStr.split('/');
+            return new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+          };
+          
+          try {
+            const today = parseDate(todayStr);
+            const yesterday = parseDate(lastDate);
+            const diffTime = Math.abs(today.getTime() - yesterday.getTime());
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 1) {
+              stats.streak += 1;
+            } else if (diffDays > 1) {
+              stats.streak = 1; // broken streak
+            }
+          } catch(e) {
+            stats.streak = 1;
+          }
+        }
+        
+        stats.lastReadDate = todayStr;
+        localStorage.setItem('alkitab_stats', JSON.stringify(stats));
+      } catch (e) {
+        console.error("Failed to update bookmark & streak stats", e);
+      }
+    }
+  }
+  
+  customElements.define('book-guide', BookGuide);

@@ -1,0 +1,10 @@
+<script>
+			const savedTheme = localStorage.getItem('alkitab_theme') || 'light';
+			document.documentElement.setAttribute('data-theme', savedTheme);
+		</script>
+
+<script type="application/json" id="globalBooksData">{JSON.stringify(booksConfig.map(b => ({id: b.id, name: b.name, category: b.category, subCategory: b.subCategory})))}</script>
+
+<script type="module" src="/_astro/StatsHeader.astro_astro_type_script_index_0_lang.Dv7Bw7gp.js"></script>
+
+<script type="module">document.addEventListener("DOMContentLoaded",()=>{try{const t=JSON.parse(localStorage.getItem("alkitab_stats")||'{"totalSwipes": 0, "streak": 0, "bookProgress": {}, "exploredBooks": []}'),a=t.bookProgress||{};if(Object.keys(a).forEach(o=>{const n=document.getElementById(`prog-${o}`),e=document.getElementById(`swipes-${o}`);if(n&&e){let s=a[o];s===100?(e.innerText="SELESAI DIBACA",e.style.color="var(--color-primary)",e.style.fontWeight="700"):e.innerText=`${s}% EKSPLORASI`,typeof s=="number"&&(s=s+"%"),n.style.width=s}}),t.lastRead&&t.lastRead.bookId){const o=document.getElementById("resumeBanner"),n=document.getElementById("resumeBookName"),e=document.getElementById("resumeLink");o&&n&&e&&(n.textContent=t.lastRead.bookName,e.href=`/read/${t.lastRead.bookId}`,o.style.display="flex")}}catch{}});</script>

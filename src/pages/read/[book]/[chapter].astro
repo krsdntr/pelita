@@ -1,0 +1,691 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import StatsHeader from '../../../components/StatsHeader.astro';
+import Footer from '../../../components/Footer.astro';
+import fs from 'fs';
+import path from 'path';
+
+export async function getStaticPaths() {
+  const metaPath = path.resolve('./src/data/bible-metadata.json');
+  const books = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+  
+  const paths = [];
+  books.forEach((book, bookIdx) => {
+    const chapters = book.chapters;
+    for (let i = 1; i <= chapters; i++) {
+      
+      let nextChapter = null;
+      if (i < chapters) {
+        nextChapter = { bookId: book.id, chapter: i + 1 };
+      } else if (bookIdx < books.length - 1) {
+        nextChapter = { bookId: books[bookIdx + 1].id, chapter: 1 };
+      }
+      
+      let prevChapter = null;
+      if (i > 1) {
+        prevChapter = { bookId: book.id, chapter: i - 1 };
+      } else if (bookIdx > 0) {
+        prevChapter = { bookId: books[bookIdx - 1].id, chapter: books[bookIdx - 1].chapters };
+      }
+
+      paths.push({
+        params: { book: book.id, chapter: String(i) },
+        props: { book, chapter: i, nextChapter, prevChapter }
+      });
+    }
+  });
+  return paths;
+}
+
+const { book, chapter, nextChapter, prevChapter } = Astro.props;
+
+// Load all books metadata
+let allBooks = [];
+try {
+  const metaPath = path.resolve('./src/data/bible-metadata.json');
+  if (fs.existsSync(metaPath)) {
+    allBooks = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+  }
+} catch (e) { console.error(e); }
+
+// Load verses from JSON
+let verses = [];
+const chapterVerseCounts = {};
+let lastVerse = 0;
+try {
+  const bookDataPath = path.resolve(`./src/data/books/${book.id}.json`);
+  if (fs.existsSync(bookDataPath)) {
+    const bookData = JSON.parse(fs.readFileSync(bookDataPath, 'utf8'));
+    
+    // Build chapter verse counts mapping
+    bookData.forEach(c => {
+      let maxV = 0;
+      if (c.verses) {
+        c.verses.forEach(v => {
+          const vNum = parseInt(v.verse) || 0;
+          if (vNum > maxV) maxV = vNum;
+        });
+      }
+      chapterVerseCounts[c.chapter] = maxV;
+    });
+
+    const chapterData = bookData.find((c: any) => String(c.chapter) === String(chapter));
+    if (chapterData && chapterData.verses) {
+      verses = chapterData.verses;
+      lastVerse = chapterVerseCounts[chapter] || 0;
+    }
+  }
+} catch (e) {
+  console.error(e);
+}
+
+// Fallback if data is not available yet
+if (verses.length === 0) {
+  verses = [{ verse: 1, text: "Teks sedang diunduh atau tidak tersedia untuk saat ini." }];
+}
+
+// Group verses into paragraphs (artificial breaks for readability)
+const groups = [];
+let currentGroup = [];
+verses.forEach(v => {
+  if (v.type === 'heading') {
+    if (currentGroup.length > 0) {
+      groups.push({ type: 'paragraph', verses: currentGroup });
+      currentGroup = [];
+    }
+    groups.push({ type: 'heading', text: v.text });
+  } else {
+    currentGroup.push(v);
+    
+    // Create an artificial paragraph break if we have >= 5 verses
+    // AND the current verse ends with a complete sentence (., ?, !) to prevent awkward splits.
+    const text = (v.text || "").trim();
+    const isEndOfSentence = /[.?!]["']?$/.test(text);
+    
+    if (currentGroup.length >= 5 && isEndOfSentence) {
+      groups.push({ type: 'paragraph', verses: currentGroup });
+      currentGroup = [];
+    }
+  }
+});
+if (currentGroup.length > 0) {
+  groups.push({ type: 'paragraph', verses: currentGroup });
+}
+---
+
+<Layout title={`${book.name} ${chapter} - Alkitab`} description={`Baca Kitab ${book.name} Bab ${chapter} selengkapnya`}>
+  <StatsHeader />
+  
+  <main class="page-container container-narrow" style="padding-top: 4rem; padding-bottom: 6rem; min-height: 80vh;">
+    <!-- Chapter Header -->
+    <header class="chapter-header" style="text-align: center; margin-bottom: 4rem;">
+      <a href={`/read/${book.id}`} class="type-label-md" style="color: var(--on-surface-variant); text-decoration: none; margin-bottom: 1.5rem; display: inline-block;">
+        &larr; KEMBALI KE RINGKASAN
+      </a>
+      <h1 class="type-display-lg" style="color: var(--color-primary); font-family: var(--font-serif); margin-bottom: 0.5rem; line-height: 1.2;">{book.name}</h1>
+      
+      <div style="display: flex; justify-content: center; margin-top: 0.5rem;">
+        <div class="type-title-lg jump-modal-trigger" role="button" tabindex="0" aria-label="Lompat ke bab atau ayat lain" title="Klik untuk melompat" style="color: var(--on-surface); font-family: var(--font-serif); cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: var(--radius-md); transition: background 0.2s;">
+          Bab {chapter}{lastVerse > 0 ? ` : 1-${lastVerse}` : ''}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; opacity: 0.6;"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+        </div>
+      </div>
+    </header>
+
+    <!-- Verses List -->
+    <article class="verses-container">
+      {groups.map(group => (
+        group.type === 'heading' ? (
+          <h3 class="chapter-heading">{group.text}</h3>
+        ) : (
+          <p class="chapter-paragraph">
+            {group.verses.map((v: any) => (
+              <span class="verse-span" id={`v${v.verse}`}>
+                <sup class="verse-num">{v.verse}</sup>
+                <span class="verse-text">{v.text}</span>
+              </span>
+            ))}
+          </p>
+        )
+      ))}
+    </article>
+
+    <!-- Attribution -->
+    <div class="attribution" style="margin-top: 4rem; padding-top: 1.5rem; text-align: center; border-top: 1px dashed var(--surface-variant);">
+      <p class="type-label-md" style="color: var(--on-surface-variant); font-style: italic;">
+        Teks Alkitab bersumber dari <a href="http://www.imankatolik.or.id/" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary); text-decoration: underline;">imankatolik.or.id</a>. Diperkenankan untuk mengutip sebagian atau seluruhnya isi materi dengan mencantumkan sumber.
+      </p>
+    </div>
+
+    <!-- Mark as Read Button -->
+    <div style="margin-top: 2.5rem; text-align: center;">
+      <button id="markReadBtn" style="padding: 0.875rem 2.5rem; border: none; border-radius: var(--radius-full); font-family: var(--font-sans); font-weight: 700; font-size: 0.8rem; letter-spacing: 0.08em; cursor: pointer; transition: all 0.2s; background: var(--color-primary); color: white;">
+        Tandai Selesai Dibaca
+      </button>
+    </div>
+
+    <!-- Sticky Navigation Bottom Bar -->
+    <nav class="sticky-bottom-nav">
+      <div class="nav-container container-narrow">
+        {prevChapter ? (
+          <a href={`/read/${prevChapter.bookId}/${prevChapter.chapter}`} class="nav-btn prev-btn" aria-label="Bab Sebelumnya">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+            <span class="nav-text">BAB SEBELUMNYA</span>
+          </a>
+        ) : <div class="nav-btn-spacer"></div>}
+
+        <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="nav-btn top-btn" aria-label="Ke Atas">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" /></svg>
+        </button>
+
+        {nextChapter ? (
+          <a href={`/read/${nextChapter.bookId}/${nextChapter.chapter}`} class="nav-btn next-btn" aria-label="Bab Selanjutnya">
+            <span class="nav-text">BAB SELANJUTNYA</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+          </a>
+        ) : <div class="nav-btn-spacer"></div>}
+      </div>
+    </nav>
+  </main>
+
+  <!-- Jump Navigation Modal -->
+  <div id="jumpModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="type-title-md" style="font-family: var(--font-serif); margin: 0; color: var(--color-primary);">Lompat ke...</h3>
+        <button id="closeModalBtn" class="close-btn" aria-label="Tutup">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="modalJumpForm">
+          <div class="form-group">
+            <label for="modalJumpBook" class="type-label-md">Kitab</label>
+            <select id="modalJumpBook" class="modal-select">
+              {allBooks.map((b: any) => (
+                <option value={b.id} selected={b.id === book.id}>{b.name}</option>
+              ))}
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="modalJumpChapter" class="type-label-md">Bab</label>
+            <select id="modalJumpChapter" class="modal-select">
+              {Object.keys(chapterVerseCounts).sort((a,b)=>Number(a)-Number(b)).map(ch => (
+                <option value={ch} selected={String(ch) === String(chapter)}>Bab {ch}</option>
+              ))}
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="modalJumpVerse" class="type-label-md">Ayat</label>
+            <select id="modalJumpVerse" class="modal-select">
+              <!-- Populated by JS -->
+            </select>
+          </div>
+          <button type="submit" class="modal-submit-btn">LOMPAT SEKARANG</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <Footer />
+</Layout>
+
+<style>
+  .verses-container {
+    text-align: left;
+    font-family: var(--font-serif);
+  }
+  .chapter-heading {
+    margin: 3.5rem 0 1.5rem;
+    color: var(--color-secondary);
+    font-family: var(--font-sans);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+  .chapter-paragraph {
+    margin-bottom: 2rem;
+    line-height: 1.9;
+    color: var(--on-surface);
+    font-size: 1.15rem;
+  }
+  .verse-span {
+    position: relative;
+    padding-right: 0.35em;
+    cursor: text;
+  }
+  .verse-span:hover .verse-text {
+    background-color: var(--surface-container-high);
+    border-radius: 2px;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+  .verse-num {
+    font-size: 0.65em;
+    color: var(--color-secondary);
+    font-family: var(--font-sans);
+    font-weight: 700;
+    margin-right: 0.3em;
+    vertical-align: super;
+    opacity: 0.8;
+  }
+  
+  :global(@keyframes verseFlash) {
+    0% { background-color: transparent; }
+    15% { background-color: var(--surface-variant); }
+    70% { background-color: var(--surface-variant); }
+    100% { background-color: transparent; }
+  }
+  :global(.verse-highlight) {
+    animation: verseFlash 2.5s ease-in-out;
+    border-radius: 4px;
+    padding: 2px 0;
+  }
+
+  /* Sticky Navigation */
+  .sticky-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(250, 249, 248, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid var(--outline-variant);
+    z-index: 50;
+    padding: 0.75rem 0;
+    box-shadow: 0 -4px 20px rgba(44,26,22,0.05);
+  }
+  
+  :global([data-theme="dark"]) .sticky-bottom-nav {
+    background: rgba(30, 26, 23, 0.85);
+  }
+
+  .nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.25rem;
+    border-radius: var(--radius-full);
+    background: var(--surface);
+    color: var(--color-primary);
+    text-decoration: none;
+    font-family: var(--font-sans);
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    transition: all var(--duration-fast);
+    border: 1px solid var(--outline-variant);
+    cursor: pointer;
+  }
+
+  .nav-btn:hover {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+    transform: translateY(-2px);
+  }
+
+  .nav-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .top-btn {
+    padding: 0.6rem;
+    border-radius: 50%;
+    color: var(--on-surface-variant);
+  }
+
+  .nav-btn-spacer {
+    width: 140px;
+  }
+
+  @media (max-width: 600px) {
+    .nav-text {
+      display: none;
+    }
+    .nav-btn {
+      padding: 0.75rem;
+    }
+    .nav-btn-spacer {
+      width: 40px;
+    }
+    .sticky-bottom-nav {
+      padding: 0.5rem 0;
+    }
+  }
+
+  /* Modal Styles */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .modal-overlay.show {
+    opacity: 1;
+  }
+  .modal-content {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    width: 90%;
+    max-width: 360px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    transform: translateY(20px);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    overflow: hidden;
+  }
+  .modal-overlay.show .modal-content {
+    transform: translateY(0);
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--outline-variant);
+    background: var(--surface-container-lowest);
+  }
+  .close-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--on-surface-variant);
+    padding: 0.5rem;
+    border-radius: 50%;
+    display: flex;
+    transition: background 0.2s;
+  }
+  .close-btn:hover {
+    background: var(--surface-variant);
+    color: var(--on-surface);
+  }
+  .close-btn svg { width: 20px; height: 20px; }
+  .modal-body {
+    padding: 1.5rem;
+  }
+  .form-group {
+    margin-bottom: 1.25rem;
+  }
+  .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--on-surface-variant);
+  }
+  .modal-select {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 1px solid var(--outline-variant);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    color: var(--on-surface);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23666%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 16px;
+    cursor: pointer;
+  }
+  .modal-select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(139, 90, 43, 0.2);
+  }
+  .modal-submit-btn {
+    width: 100%;
+    padding: 1rem;
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-family: var(--font-sans);
+    font-weight: 700;
+    font-size: 0.875rem;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+  .modal-submit-btn:hover {
+    opacity: 0.9;
+  }
+  .modal-submit-btn:active {
+    transform: scale(0.98);
+  }
+  .jump-modal-trigger:hover {
+    background: var(--surface-container-low);
+  }
+</style>
+
+<script define:vars={{ currentBookId: book.id, chapterNum: chapter, verseCounts: chapterVerseCounts, allBooks: allBooks }}>
+  try {
+    // Jump modal logic
+    const modal = document.getElementById('jumpModal');
+    const trigger = document.querySelector('.jump-modal-trigger');
+    const closeBtn = document.getElementById('closeModalBtn');
+    const bookSelect = document.getElementById('modalJumpBook');
+    const chapterSelect = document.getElementById('modalJumpChapter');
+    const verseSelect = document.getElementById('modalJumpVerse');
+    const form = document.getElementById('modalJumpForm');
+
+    function populateChapters(selectedBookId) {
+      if (!chapterSelect || !allBooks) return;
+      const selectedBook = allBooks.find(b => b.id === selectedBookId);
+      if (!selectedBook) return;
+      
+      const maxCh = selectedBook.chapters || 1;
+      let chapterHtml = '';
+      for (let i = 1; i <= maxCh; i++) {
+        chapterHtml += `<option value="${i}" ${selectedBookId === currentBookId && String(i) === String(chapterNum) ? 'selected' : ''}>Bab ${i}</option>`;
+      }
+      chapterSelect.innerHTML = chapterHtml;
+    }
+
+    function populateVerses(selectedChapter) {
+      if (!verseSelect) return;
+      
+      // If we selected a different book, we can't reliably know the verse count client-side
+      if (bookSelect && bookSelect.value !== currentBookId) {
+        verseSelect.innerHTML = '<option value="">(Pilih setelah pindah kitab)</option>';
+        verseSelect.disabled = true;
+        return;
+      }
+      
+      verseSelect.disabled = false;
+      const maxV = verseCounts ? (verseCounts[selectedChapter] || 0) : 0;
+      let html = '<option value="">Semua Ayat</option>';
+      for(let i = 1; i <= maxV; i++) {
+        html += `<option value="${i}">Ayat ${i}</option>`;
+      }
+      verseSelect.innerHTML = html;
+    }
+
+    function openModal() {
+      if (!modal) return;
+      modal.style.display = 'flex';
+      setTimeout(() => {
+        modal.style.opacity = '1';
+        const content = modal.querySelector('.modal-content');
+        if (content) content.style.transform = 'translateY(0)';
+      }, 10);
+      document.body.style.overflow = 'hidden'; // prevent scroll
+      if (bookSelect) bookSelect.value = currentBookId;
+      populateChapters(currentBookId);
+      populateVerses(chapterNum);
+    }
+
+    function closeModal() {
+      if (!modal) return;
+      modal.style.opacity = '0';
+      const content = modal.querySelector('.modal-content');
+      if (content) content.style.transform = 'translateY(20px)';
+      document.body.style.overflow = ''; // restore scroll immediately so scrollIntoView works
+      setTimeout(() => {
+        modal.style.display = 'none';
+      }, 300);
+    }
+
+    trigger?.addEventListener('click', openModal);
+    trigger?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal(); }
+    });
+    closeBtn?.addEventListener('click', closeModal);
+    modal?.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+
+    bookSelect?.addEventListener('change', (e) => {
+      populateChapters(e.target.value);
+      populateVerses(chapterSelect?.value || 1);
+    });
+
+    chapterSelect?.addEventListener('change', (e) => {
+      populateVerses(e.target.value);
+    });
+
+    form?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const jB = bookSelect?.value;
+      const jCh = chapterSelect?.value;
+      const jV = verseSelect?.value;
+      
+      closeModal();
+      
+      // Jump to a different book
+      if (jB && jB !== currentBookId) {
+        window.location.href = `/read/${jB}/${jCh || 1}`;
+        return;
+      }
+      
+      // Jump to a different chapter in the same book
+      if (jCh && String(jCh) !== String(chapterNum)) {
+        let targetUrl = `/read/${currentBookId}/${jCh}`;
+        if (jV) targetUrl += `?v=${encodeURIComponent(jV)}`;
+        window.location.href = targetUrl;
+        return;
+      }
+      
+      // Same chapter, just a verse jump
+      if (jV) {
+        highlightVerses(jV);
+        const newUrl = new URL(window.location);
+        newUrl.searchParams.set('v', jV);
+        window.history.pushState({}, '', newUrl);
+      }
+    });
+
+    // Highlight logic
+    function highlightVerses(verseStr) {
+      document.querySelectorAll('.verse-highlight').forEach(el => el.classList.remove('verse-highlight'));
+      
+      let start = 0, end = 0;
+      if (verseStr.includes('-')) {
+        const parts = verseStr.split('-');
+        start = parseInt(parts[0]);
+        end = parseInt(parts[1]);
+      } else {
+        start = parseInt(verseStr);
+        end = start;
+      }
+      
+      if (!start || isNaN(start)) return;
+      if (isNaN(end) || end < start) end = start;
+      
+      let firstEl = null;
+      for (let i = start; i <= end; i++) {
+        const el = document.getElementById(`v${i}`);
+        if (el) {
+          el.classList.remove('verse-highlight');
+          void el.offsetWidth; // trigger reflow to restart animation
+          el.classList.add('verse-highlight');
+          if (!firstEl) firstEl = el;
+        }
+      }
+      
+      if (firstEl) {
+        firstEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+    
+    // Check URL parameters for highlights on load
+    const params = new URLSearchParams(window.location.search);
+    const vParam = params.get('v');
+    if (vParam) {
+      setTimeout(() => highlightVerses(vParam), 500); // slight delay for smooth initial load
+    }
+
+    // Mark-as-read button logic
+    const markBtn = document.getElementById('markReadBtn');
+    if (!markBtn) throw new Error('no btn');
+    
+    const storageKey = 'alkitab_stats';
+    
+    function getStats() {
+      try {
+        const raw = localStorage.getItem(storageKey);
+        const base = raw ? JSON.parse(raw) : {};
+        if (!base.readChapters || typeof base.readChapters !== 'object') base.readChapters = {};
+        return base;
+      } catch { return { readChapters: {} }; }
+    }
+
+    function isRead() {
+      const stats = getStats();
+      const bookChapters = stats.readChapters[bookId];
+      return Array.isArray(bookChapters) && bookChapters.includes(chapterNum);
+    }
+
+    function updateBtnState() {
+      const read = isRead();
+      markBtn.textContent = read ? '✓ Sudah Dibaca' : 'Tandai Selesai Dibaca';
+      markBtn.style.background = read ? 'var(--color-secondary)' : 'var(--color-primary)';
+      markBtn.style.color = 'white';
+    }
+
+    markBtn.addEventListener('click', () => {
+      const stats = getStats();
+      if (!Array.isArray(stats.readChapters[bookId])) {
+        stats.readChapters[bookId] = [];
+      }
+      if (!stats.readChapters[bookId].includes(chapterNum)) {
+        stats.readChapters[bookId].push(chapterNum);
+        // Also mark book as explored for backward-compat
+        if (!Array.isArray(stats.exploredBooks)) stats.exploredBooks = [];
+        if (!stats.exploredBooks.includes(bookId)) {
+          stats.exploredBooks.push(bookId);
+          if (!stats.bookReadAt) stats.bookReadAt = {};
+          stats.bookReadAt[bookId] = new Date().toISOString();
+        }
+        // Update streak logic: if read today, increment streak
+        const today = new Date().toDateString();
+        if (stats.lastReadDate !== today) {
+          const yesterday = new Date(Date.now() - 86400000).toDateString();
+          stats.streak = (stats.lastReadDate === yesterday) ? (Number(stats.streak || 0) + 1) : 1;
+          stats.lastReadDate = today;
+        }
+        localStorage.setItem(storageKey, JSON.stringify(stats));
+      }
+      updateBtnState();
+    });
+
+    updateBtnState();
+  } catch(e) { console.warn('markRead:', e); }
+</script>

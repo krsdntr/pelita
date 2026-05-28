@@ -1,0 +1,941 @@
+---
+import Layout from '../layouts/Layout.astro';
+import StatsHeader from '../components/StatsHeader.astro';
+import Footer from '../components/Footer.astro';
+import fs from 'fs';
+import path from 'path';
+
+const catechismPath = path.resolve('./src/data/catechism-compendium.json');
+let compendium = [];
+try {
+  compendium = JSON.parse(fs.readFileSync(catechismPath, 'utf8'));
+} catch (e) {
+  console.error("Gagal memuat katekismus-compendium.json:", e);
+}
+---
+
+<Layout title="Kompendium" description="Pelajari dasar-dasar iman Katolik melalui Kompendium Katekismus Gereja Katolik secara interaktif dan mendalam.">
+  <StatsHeader />
+
+  <div class="catechism-container container-narrow">
+    <!-- Header Section -->
+    <header class="editorial-header">
+      <span class="type-label-md category-tag">LENTERA IMAN KATOLIK</span>
+      <h1 class="type-display-lg main-title">Kompendium Katekismus</h1>
+      <p class="type-body-lg subtitle">
+        Selamat datang di gerbang pembelajaran dasar-dasar iman Katolik yang dirancang secara dinamis. Telusuri 4 Pilar Utama Katekismus Gereja Katolik (KGK), temukan kebenaran ajaran para kudus, serta refleksikan penerapannya dalam kehidupan praktis Anda sehari-hari.
+      </p>
+    </header>
+
+    <!-- Dashboard Grid Layout -->
+    <div class="catechism-grid">
+      
+      <!-- Main Content Area: Q&As -->
+      <main class="catechism-main">
+        
+        <!-- Romo AI Chatbot Area -->
+        <div class="dash-card chat-card" style="margin-bottom: 2rem; border-top: 4px solid var(--color-primary); display: flex; flex-direction: column;">
+          <div class="chat-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--outline-variant); padding-bottom: 1rem; margin-bottom: 1rem;">
+            <div>
+              <h2 class="type-title-lg" style="color: var(--color-primary);">COCO</h2>
+              <span class="type-label-md">Compendium Companion Anda</span>
+            </div>
+            <div class="token-limit-badge" style="background: var(--surface-container-highest); padding: 0.5rem 1rem; border-radius: var(--radius-full); font-size: 0.75rem; font-weight: 700; color: var(--on-surface-variant);">
+              SISA PESAN HARI INI: <span id="chatTokenLimit" style="color: var(--color-primary);">20</span>/20
+            </div>
+          </div>
+          
+          <div class="chat-history" id="chatHistory" style="max-height: 400px; min-height: 250px; overflow-y: auto; padding-right: 1rem; display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+            <div class="chat-message assistant" style="align-self: flex-start; display: flex; flex-direction: column; align-items: flex-start;">
+              <div class="message-bubble" style="background: var(--surface-container-high); padding: 1rem 1.25rem; border-radius: 0 var(--radius-md) var(--radius-md) var(--radius-md); max-width: 85%;">
+                <p class="type-body-md" style="line-height: 1.5; margin: 0; color: var(--on-surface);">Halo! Saya <strong>COCO (Compendium Companion)</strong>, asisten virtual yang siap membantu Anda menjawab pertanyaan seputar iman Katolik berdasarkan Kompendium Katekismus. Ada yang bisa saya bantu hari ini?</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="chat-input-area" style="display: flex; gap: 0.75rem;">
+            <input type="text" id="chatInput" placeholder="Tanyakan seputar dosa, sakramen, doa, dll..." style="flex: 1; padding: 1rem 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--outline-variant); background: var(--surface-container-lowest); font-family: var(--font-sans); color: var(--on-surface); font-size: 1rem;" />
+            <button id="chatSendBtn" style="background: var(--color-primary); color: var(--on-primary); border: none; padding: 0 1.5rem; border-radius: var(--radius-md); font-weight: 700; cursor: pointer; transition: opacity 0.2s;">KIRIM</button>
+          </div>
+        </div>
+
+        <script id="compendiumData" type="application/json" set:html={JSON.stringify(compendium)}></script>
+
+        <!-- Search and Filter Bar -->
+        <div class="search-and-filter">
+          <div class="search-box">
+            <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="18" height="18" class="search-icon">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+            </svg>
+            <input type="text" id="catechismSearch" placeholder="Cari ajaran, iman, sakramen, dosa, doa..." aria-label="Cari Katekismus" />
+          </div>
+        </div>
+
+        <!-- Horizontal Pillar selector Deck -->
+        <div class="pillar-nav-deck">
+          <button class="pillar-btn active" data-pillar="all">
+            <span class="pillar-icon">⛪</span>
+            <span class="type-label-md">SEMUA</span>
+          </button>
+          {compendium.map((item) => (
+            <button class="pillar-btn" data-pillar={item.pillar}>
+              <span class="pillar-icon">
+                {item.pillar === 'syahadat' ? '⚓' : ''}
+                {item.pillar === 'sakramen' ? '🍷' : ''}
+                {item.pillar === 'moral' ? '📜' : ''}
+                {item.pillar === 'doa' ? '🙏' : ''}
+              </span>
+              <span class="type-label-md">{item.pillar}</span>
+            </button>
+          ))}
+        </div>
+
+        <!-- Q&A Cards List -->
+        <div class="qa-list-deck" id="qaListDeck">
+          {compendium.map((pillarData) => 
+            pillarData.questions.map((qa) => (
+              <div class="qa-card" data-pillar={pillarData.pillar} data-search-text={`${qa.question.toLowerCase()} ${qa.answer.toLowerCase()} ${qa.reference.toLowerCase()} ${qa.reflection.toLowerCase()}`}>
+                <button class="qa-card-header" aria-expanded="false" aria-label={`Buka pertanyaan: ${qa.question}`}>
+                  <div class="qa-header-content">
+                    <span class={`pillar-pill bg-gradient-${pillarData.pillar}`}>{pillarData.pillar.toUpperCase()}</span>
+                    <h3 class="type-title-lg qa-title">{qa.question}</h3>
+                  </div>
+                  <div class="expand-icon-wrap">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20" class="expand-chevron">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </button>
+
+                <div class="qa-card-body">
+                  <div class="body-inner selectable">
+                    <!-- official answer -->
+                    <div class="answer-section">
+                      <span class="section-label type-label-md">JAWABAN KATEKISMUS RESMI</span>
+                      <p class="type-body-lg answer-text">{qa.answer}</p>
+                    </div>
+
+                    <!-- pastoral reflection -->
+                    <div class="reflection-section vellum-bg">
+                      <span class="section-label type-label-md color-accent">REFLEKSI IMAN BATINIAH</span>
+                      <p class="type-body-lg reflection-text italic">"{qa.reflection}"</p>
+                    </div>
+
+                    <!-- reference badge -->
+                    <div class="reference-footer">
+                      <span class="kgk-badge type-label-md">{qa.reference}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+          
+          <!-- Empty State -->
+          <div class="empty-search-state" id="emptySearchState" style="display: none;">
+            <p class="type-title-lg italic">Tidak ada ajaran katekismus yang cocok dengan pencarian Anda.</p>
+            <p class="type-label-md" style="margin-top: 0.5rem; opacity: 0.7;">Cobalah kata kunci lain seperti 'Ekaristi', 'Maria', 'Dosa', atau 'Bapa Kami'.</p>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+  <Footer />
+</Layout>
+
+<script is:inline src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+    // ----------------------------------------
+    // A. SEARCH & PILLAR FILTERING LOGIC
+    // ----------------------------------------
+    const searchInput = document.getElementById('catechismSearch') as HTMLInputElement;
+    const pillarButtons = document.querySelectorAll('.pillar-btn');
+    const qaCards = document.querySelectorAll('.qa-card');
+    const emptyState = document.getElementById('emptySearchState');
+    let currentPillar = 'all';
+
+    const filterCards = () => {
+      const query = searchInput.value.toLowerCase().trim();
+      let visibleCount = 0;
+
+      qaCards.forEach((cItem: any) => {
+        const itemPillar = cItem.getAttribute('data-pillar');
+        const searchText = cItem.getAttribute('data-search-text');
+        
+        const matchesSearch = searchText.includes(query);
+        const matchesPillar = currentPillar === 'all' || itemPillar === currentPillar;
+
+        if (matchesSearch && matchesPillar) {
+          cItem.style.display = 'block';
+          visibleCount++;
+        } else {
+          cItem.style.display = 'none';
+          // Ensure collapsed when hidden
+          cItem.classList.remove('expanded');
+          const body = cItem.querySelector('.qa-card-body');
+          if (body) body.style.maxHeight = null;
+        }
+      });
+
+      if (emptyState) {
+        emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
+      }
+    };
+
+    // Filter by search text
+    if (searchInput) {
+      searchInput.addEventListener('input', filterCards);
+    }
+
+    // Filter by Pillar selection
+    pillarButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        pillarButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentPillar = btn.getAttribute('data-pillar') || 'all';
+        filterCards();
+      });
+    });
+
+    // ----------------------------------------
+    // B. EXPANDABLE Q&A CARD ACCORDION
+    // ----------------------------------------
+    const qaCardHeaders = document.querySelectorAll('.qa-card-header:not(#quizHeaderBtn)');
+    qaCardHeaders.forEach(header => {
+      header.addEventListener('click', () => {
+        const card = header.closest('.qa-card');
+        if (!card) return;
+        const body = card.querySelector('.qa-card-body') as HTMLElement;
+        const isOpen = card.classList.contains('expanded');
+
+        // Close all other cards first (Accordion style for clean visual focus)
+        qaCards.forEach((otherCard: any) => {
+          if (otherCard !== card && otherCard.classList.contains('expanded')) {
+            otherCard.classList.remove('expanded');
+            const otherBody = otherCard.querySelector('.qa-card-body');
+            if (otherBody) otherBody.style.maxHeight = null;
+          }
+        });
+
+        // Toggle current card
+        if (isOpen) {
+          card.classList.remove('expanded');
+          header.setAttribute('aria-expanded', 'false');
+          if (body) body.style.maxHeight = null;
+        } else {
+          card.classList.add('expanded');
+          header.setAttribute('aria-expanded', 'true');
+          if (body) body.style.maxHeight = body.scrollHeight + 'px';
+        }
+      });
+    });
+
+    // ----------------------------------------
+    // C. ROMO AI CHATBOT LOGIC (GROQ)
+    // ----------------------------------------
+    const chatInput = document.getElementById('chatInput');
+    const chatSendBtn = document.getElementById('chatSendBtn');
+    const chatHistory = document.getElementById('chatHistory');
+    const chatTokenLimitEl = document.getElementById('chatTokenLimit');
+    
+    const GROQ_API_KEY = import.meta.env.PUBLIC_GROQ_API_KEY || "";
+    const MAX_DAILY_MESSAGES = 20;
+
+    let compendiumData = [];
+    try {
+      compendiumData = JSON.parse(document.getElementById('compendiumData').textContent || '[]');
+    } catch(e) { console.error(e); }
+
+    const checkDailyLimit = () => {
+      const today = new Date().toDateString();
+      const storedData = JSON.parse(localStorage.getItem('romo_ai_limit') || '{}');
+      if (storedData.date !== today) {
+        return MAX_DAILY_MESSAGES;
+      }
+      return storedData.remaining ?? MAX_DAILY_MESSAGES;
+    };
+
+    const updateDailyLimit = (remaining) => {
+      const today = new Date().toDateString();
+      localStorage.setItem('romo_ai_limit', JSON.stringify({ date: today, remaining }));
+      if (chatTokenLimitEl) chatTokenLimitEl.textContent = remaining.toString();
+      
+      if (remaining <= 0) {
+        chatInput.disabled = true;
+        chatSendBtn.disabled = true;
+        chatInput.placeholder = "Batas 20 pesan harian tercapai. Coba lagi besok ya!";
+        chatSendBtn.style.opacity = '0.5';
+      }
+    };
+
+    let currentRemaining = checkDailyLimit();
+    updateDailyLimit(currentRemaining);
+
+    const appendMessage = (text, sender) => {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = `chat-message ${sender}`;
+      
+      const isUser = sender === 'user';
+      msgDiv.style.alignSelf = isUser ? 'flex-end' : 'flex-start';
+      msgDiv.style.display = 'flex';
+      msgDiv.style.flexDirection = 'column';
+      msgDiv.style.alignItems = isUser ? 'flex-end' : 'flex-start';
+      
+      const bubble = document.createElement('div');
+      bubble.className = 'message-bubble';
+      bubble.style.padding = '1rem 1.25rem';
+      bubble.style.maxWidth = '85%';
+      bubble.style.borderRadius = isUser ? 'var(--radius-md) var(--radius-md) 0 var(--radius-md)' : '0 var(--radius-md) var(--radius-md) var(--radius-md)';
+      bubble.style.background = isUser ? 'var(--color-primary)' : 'var(--surface-container-high)';
+      bubble.style.color = isUser ? 'white' : 'var(--on-surface)';
+      
+      // Gunakan marked.js untuk rendering markdown
+      let formattedText = typeof marked !== 'undefined' 
+        ? marked.parse(text)
+        : text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>');
+      
+      // Styling khusus markdown chat
+      bubble.innerHTML = `<div class="type-body-md markdown-chat-content" style="line-height: 1.5; margin: 0;">${formattedText}</div>`;
+      msgDiv.appendChild(bubble);
+      chatHistory.appendChild(msgDiv);
+      
+      // Scroll to bottom
+      setTimeout(() => {
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+      }, 50);
+    };
+
+    let chatMemory = [];
+    const MAX_MEMORY = 10;
+
+    const searchCatechismContext = (query) => {
+      const stopWords = ['apa', 'itu', 'dan', 'yang', 'di', 'ke', 'dari', 'bagaimana', 'mengapa', 'adalah', 'untuk', 'dengan', 'dalam'];
+      const keywords = query.toLowerCase().replace(/[^\w\s]/gi, '').split(' ')
+        .filter(w => w.length > 2 && !stopWords.includes(w));
+      
+      if (keywords.length === 0) keywords.push(query.toLowerCase());
+
+      let matches = [];
+      compendiumData.forEach(pillar => {
+        pillar.questions.forEach(qa => {
+          let score = 0;
+          const qText = qa.question.toLowerCase();
+          const aText = qa.answer.toLowerCase();
+          
+          keywords.forEach(kw => {
+            if (qText.includes(kw)) score += 2;
+            if (aText.includes(kw)) score += 1;
+          });
+
+          if (score > 0) {
+            matches.push({ score, text: `Tanya (Kompendium): ${qa.question}\nJawab (Kompendium): ${qa.answer}\nReferensi: ${qa.reference}` });
+          }
+        });
+      });
+
+      matches.sort((a, b) => b.score - a.score);
+      return matches.slice(0, 3).map(m => m.text).join("\n\n");
+    };
+
+    const GROQ_MODELS = [
+      "llama-3.3-70b-versatile",
+      "llama-3.1-8b-instant",
+      "mixtral-8x7b-32768",
+      "gemma2-9b-it"
+    ];
+
+    const fetchGroqChat = async (messages) => {
+      let lastError = null;
+      for (const model of GROQ_MODELS) {
+        try {
+          const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${GROQ_API_KEY}`
+            },
+            body: JSON.stringify({
+              model: model,
+              messages: messages
+            })
+          });
+          const data = await res.json();
+          if (res.ok && data.choices && data.choices[0]) {
+            return data;
+          } else {
+            lastError = data.error?.message || JSON.stringify(data);
+            if (res.status === 401) break; 
+            console.warn(`[COCO] Model ${model} gagal: ${lastError}`);
+            continue; 
+          }
+        } catch (err) {
+          lastError = err.message;
+          console.warn(`[COCO] Fetch error pada model ${model}: ${err.message}`);
+          continue; 
+        }
+      }
+      throw new Error(lastError || "Seluruh model AI gagal merespons.");
+    };
+
+    const handleSendMessage = async () => {
+      const text = chatInput.value.trim();
+      if (!text || currentRemaining <= 0) return;
+      
+      appendMessage(text, 'user');
+      chatInput.value = '';
+      currentRemaining--;
+      updateDailyLimit(currentRemaining);
+      
+      appendMessage("Berpikir...", 'assistant');
+      const loadingBubble = chatHistory.lastElementChild;
+
+      try {
+        const context = searchCatechismContext(text);
+        const systemPrompt = `Anda adalah COCO (Compendium Companion), asisten Katolik virtual di "The Sacred Library". 
+Jawablah dengan penuh kasih, ringkas, dan berwibawa.
+
+PENTING (Perbedaan Kompendium & KGK):
+- "Kompendium" adalah ringkasan berformat tanya-jawab.
+- "KGK" (Katekismus Gereja Katolik) adalah dokumen sumber utama yang jauh lebih tebal. 
+Referensi seperti "KGK 123" menunjuk ke dokumen asli KGK, bukan nomor urut pertanyaan Kompendium.
+
+ATURAN SITASI WAJIB:
+- Jika Anda mengambil informasi dari konteks di bawah ini, Anda WAJIB mencantumkan referensinya di akhir kalimat/jawaban Anda, misalnya "(Bdk. KGK 123)" atau "Menurut Kompendium...".
+- Jangan berhalusinasi. Jika di luar konteks, gunakan pengetahuan Katolik yang umum namun tetap sesuai magisterium.
+
+KONTEKS KOMPENDIUM:
+---
+${context}
+---`;
+
+        let apiMessages = [{ role: "system", content: systemPrompt }];
+        apiMessages.push(...chatMemory);
+        apiMessages.push({ role: "user", content: text });
+
+        const data = await fetchGroqChat(apiMessages);
+        loadingBubble.remove();
+        
+        const answerText = data.choices[0].message.content;
+        appendMessage(answerText, 'assistant');
+        
+        chatMemory.push({ role: "user", content: text });
+        chatMemory.push({ role: "assistant", content: answerText });
+        
+        if (chatMemory.length > MAX_MEMORY) {
+          chatMemory = chatMemory.slice(chatMemory.length - MAX_MEMORY);
+        }
+
+      } catch (err) {
+        loadingBubble.remove();
+        appendMessage(`Maaf, terjadi kesalahan saat menghubungi server: ${err.message}`, 'assistant');
+        currentRemaining++;
+        updateDailyLimit(currentRemaining);
+      }
+    };
+
+    if (chatSendBtn) chatSendBtn.addEventListener('click', handleSendMessage);
+    if (chatInput) chatInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') handleSendMessage();
+    });
+</script>
+
+<style>
+  .catechism-container {
+    padding-top: 3rem;
+    padding-bottom: 8rem;
+  }
+
+  .editorial-header {
+    margin-bottom: 4rem;
+  }
+
+  .category-tag {
+    color: var(--color-secondary);
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.75rem;
+    display: inline-block;
+  }
+
+  .main-title {
+    color: var(--color-primary);
+    font-weight: 700;
+    font-size: 2.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .subtitle {
+    color: var(--on-surface);
+    opacity: 0.95;
+    line-height: 1.65;
+  }
+
+  /* Grid Layout */
+  .catechism-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+
+  @media (min-width: 992px) {
+    .catechism-grid {
+      grid-template-columns: 1fr; /* Changed to 1 column since sidebar is removed */
+    }
+  }
+
+  /* Main area content styling */
+  .catechism-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .search-and-filter {
+    background-color: var(--surface-container-low);
+    padding: 0.5rem;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-subtle);
+  }
+
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
+  }
+
+  .search-icon {
+    color: var(--color-secondary);
+  }
+
+  .search-box input {
+    background: transparent;
+    border: none;
+    outline: none;
+    width: 100%;
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+    color: var(--on-surface);
+  }
+
+  .search-box input::placeholder {
+    color: var(--on-surface-variant);
+    opacity: 0.65;
+  }
+
+  /* Pillar Selector Deck */
+  .pillar-nav-deck {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    scrollbar-width: thin;
+  }
+
+  .pillar-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: var(--surface-container-low);
+    color: var(--on-surface-variant);
+    border: 1px solid var(--outline-variant);
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--radius-md);
+    white-space: nowrap;
+    transition: all var(--duration-fast) var(--ease-out-expo);
+  }
+
+  .pillar-btn:hover {
+    background-color: var(--surface-container-high);
+    color: var(--on-surface);
+  }
+
+  .pillar-btn.active {
+    background-color: var(--color-primary);
+    color: var(--on-primary);
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-subtle);
+  }
+
+  .pillar-icon {
+    font-size: 1rem;
+  }
+
+  /* Q&A Cards Styling */
+  .qa-list-deck {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .qa-card {
+    background-color: var(--surface-container-low);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-subtle);
+    border: 1px solid var(--outline-variant);
+    overflow: hidden;
+    transition: transform var(--duration-fast), background-color var(--duration-fast);
+  }
+
+  .qa-card:hover {
+    background-color: var(--surface-container);
+  }
+
+  .qa-card.expanded {
+    background-color: var(--surface-container);
+    border-left: 4px solid var(--color-primary);
+  }
+
+  .qa-card-header {
+    width: 100%;
+    background: transparent;
+    border: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.75rem 2rem;
+    text-align: left;
+    gap: 1rem;
+    cursor: pointer;
+  }
+
+  .qa-header-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .pillar-pill {
+    font-family: var(--font-sans);
+    font-size: 0.55rem;
+    font-weight: 700;
+    color: white;
+    padding: 0.15rem 0.5rem;
+    border-radius: var(--radius-sm);
+    letter-spacing: 0.1em;
+  }
+
+  /* Pillar Gradients (DESIGN.md Premium rule) */
+  .bg-gradient-syahadat { background: linear-gradient(135deg, #1e3a8a, #0d9488); }
+  .bg-gradient-sakramen { background: linear-gradient(135deg, #b45309, #ea580c); }
+  .bg-gradient-moral { background: linear-gradient(135deg, #064e3b, #059669); }
+  .bg-gradient-doa { background: linear-gradient(135deg, #581c87, #c026d3); }
+
+  .qa-title {
+    color: var(--color-primary);
+    font-weight: 700;
+    font-size: 1.15rem;
+  }
+
+  .expand-icon-wrap {
+    background-color: var(--surface-container-high);
+    border-radius: var(--radius-full);
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    transition: transform var(--duration-normal) var(--ease-out-expo);
+  }
+
+  .qa-card.expanded .expand-icon-wrap {
+    transform: rotate(180deg);
+    background-color: var(--color-primary);
+    color: var(--on-primary);
+  }
+
+  .expand-chevron {
+    transition: color var(--duration-fast);
+  }
+
+  /* Card Body Expandable styling */
+  .qa-card-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height var(--duration-normal) var(--ease-out-expo);
+  }
+
+  .body-inner {
+    padding: 0 2rem 2rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    border-top: 1px solid var(--outline-variant);
+    padding-top: 1.5rem;
+  }
+
+  .section-label {
+    font-size: 0.6rem;
+    color: var(--on-surface-variant);
+    letter-spacing: 0.12em;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  .section-label.color-accent {
+    color: var(--color-secondary);
+  }
+
+  .answer-text {
+    line-height: 1.65;
+    font-weight: 400;
+    color: var(--on-surface);
+  }
+
+  .vellum-bg {
+    background-color: var(--surface-container-lowest);
+    border-left: 3px solid var(--color-secondary);
+    padding: 1.25rem 1.5rem;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-subtle);
+  }
+
+  .reflection-text {
+    font-family: var(--font-serif);
+    line-height: 1.6;
+    color: var(--on-surface-variant);
+  }
+
+  .reference-footer {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .kgk-badge {
+    background-color: var(--surface-container-highest);
+    color: var(--color-primary);
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+  }
+
+  /* Sidebar - Quiz card styling */
+  .catechism-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    position: sticky;
+    top: 100px;
+  }
+
+  .dash-card {
+    background-color: var(--surface-container-low);
+    border-radius: var(--radius-lg);
+    padding: 2.5rem 2rem;
+    box-shadow: var(--shadow-ambient);
+    border: 1px solid var(--outline-variant);
+  }
+
+  .quiz-card {
+    border-top: 4px solid var(--color-secondary);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .quiz-badge-wrap {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--outline-variant);
+    padding-bottom: 0.75rem;
+  }
+
+  .font-tiny {
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+  }
+
+  .gold-text {
+    color: var(--color-secondary);
+  }
+
+  .quiz-stats {
+    font-size: 0.65rem;
+    color: var(--on-surface-variant);
+    font-weight: 600;
+  }
+
+  .quiz-card-title {
+    color: var(--color-primary);
+    font-weight: 700;
+  }
+
+  .quiz-question {
+    font-weight: 600;
+    line-height: 1.45;
+    color: var(--on-surface);
+  }
+
+  .quiz-options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+
+  :global(.quiz-opt-btn) {
+    width: 100%;
+    background-color: var(--surface-container-low);
+    color: var(--on-surface);
+    border: 2px solid var(--outline-variant);
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius-lg);
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    transition: all var(--duration-fast) var(--ease-out-expo);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  }
+
+  :global(.opt-letter) {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-full);
+    background-color: var(--surface-container-highest);
+    color: var(--on-surface-variant);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+    transition: all var(--duration-fast);
+  }
+
+  :global(.opt-text) {
+    font-family: var(--font-sans);
+    font-size: 1.05rem;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  :global(.quiz-opt-btn:hover:not(:disabled)) {
+    background-color: var(--surface-container);
+    border-color: var(--color-primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-subtle);
+  }
+
+  :global(.quiz-opt-btn:hover:not(:disabled) .opt-letter) {
+    background-color: var(--color-primary);
+    color: var(--on-primary);
+  }
+
+  :global(.quiz-opt-btn.correct) {
+    background-color: var(--color-secondary);
+    border-color: var(--color-secondary);
+    color: white;
+  }
+  :global(.quiz-opt-btn.correct .opt-letter) {
+    background-color: white;
+    color: var(--color-secondary);
+  }
+  :global(.quiz-opt-btn.correct .opt-text) {
+    color: white;
+  }
+
+  :global(.quiz-opt-btn.incorrect) {
+    background-color: var(--color-error);
+    border-color: var(--color-error);
+    color: white;
+  }
+  :global(.quiz-opt-btn.incorrect .opt-letter) {
+    background-color: white;
+    color: var(--color-error);
+  }
+  :global(.quiz-opt-btn.incorrect .opt-text) {
+    color: white;
+  }
+
+  :global(.quiz-opt-btn.correct-highlight) {
+    border-color: var(--color-secondary);
+    background-color: var(--surface-container-low);
+  }
+  :global(.quiz-opt-btn.correct-highlight .opt-letter) {
+    background-color: var(--color-secondary);
+    color: white;
+  }
+
+  /* Quiz Feedback Box styling */
+  .quiz-feedback-box {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    background-color: var(--surface-container-lowest);
+    padding: 1.25rem 1.5rem;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-subtle);
+    animation: slideDown var(--duration-normal) var(--ease-out-expo);
+  }
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .feedback-status {
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+  }
+
+  .feedback-status.correct {
+    color: var(--color-secondary);
+  }
+
+  .feedback-status.incorrect {
+    color: var(--color-error);
+  }
+
+  .feedback-explanation {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--on-surface-variant);
+  }
+
+  .next-quiz-btn {
+    align-self: flex-end;
+    background-color: var(--color-primary);
+    color: var(--on-primary);
+    border: none;
+    padding: 0.6rem 1.25rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-weight: 600;
+    margin-top: 0.5rem;
+    transition: background-color var(--duration-fast);
+  }
+
+  .next-quiz-btn:hover {
+    opacity: 0.95;
+  }
+
+  /* Empty Search State */
+  .empty-search-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--on-surface-variant);
+  }
+
+  /* Markdown Chat Formatting */
+  :global(.markdown-chat-content p:not(:last-child)) {
+    margin-bottom: 0.75rem;
+  }
+  :global(.markdown-chat-content ul), :global(.markdown-chat-content ol) {
+    margin-left: 1.5rem;
+    margin-bottom: 0.75rem;
+    padding-left: 0;
+  }
+  :global(.markdown-chat-content li) {
+    margin-bottom: 0.25rem;
+  }
+  :global(.markdown-chat-content strong) {
+    font-weight: 700;
+  }
+</style>

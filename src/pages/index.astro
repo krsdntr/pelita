@@ -1,0 +1,220 @@
+---
+import Layout from '../layouts/Layout.astro';
+import StatsHeader from '../components/StatsHeader.astro';
+import BookCard from '../components/BookCard.astro';
+import Footer from '../components/Footer.astro';
+import booksConfig from '../data/bible-metadata.json';
+
+// Group books by category & subCategory
+const groupedBooks = booksConfig.reduce((acc, book) => {
+  if (!acc[book.category]) acc[book.category] = {};
+  if (!acc[book.category][book.subCategory]) acc[book.category][book.subCategory] = [];
+  acc[book.category][book.subCategory].push(book);
+  return acc;
+}, {} as any);
+
+const categories = ["Perjanjian Lama", "Perjanjian Baru", "Deuterokanonika"];
+---
+
+<Layout title="Rak Buku">
+  <StatsHeader />
+  
+  <div class="library-layout container">
+    <!-- Main Bookshelf Column (Single Column now) -->
+    <main class="bookshelf-content">
+      <div class="editorial-header">
+        <h1 class="type-display-lg main-title">Rak Buku</h1>
+        <p class="type-body-lg subtitle italic">"Firman-Mu itu pelita bagi kakiku dan terang bagi jalanku." — Mazmur 119:105</p>
+      </div>
+
+      <!-- Spanduk Lanjutkan Penjelajahan (Resume Banner) -->
+      <div id="resumeBanner" class="resume-banner" style="display: none;">
+        <div class="resume-text-group">
+          <span class="type-label-md resume-tag">LANJUTKAN PENJELAJAHAN</span>
+          <h3 class="type-title-lg resume-book-title" id="resumeBookName">Kitab Kejadian</h3>
+        </div>
+        <a href="#" id="resumeLink" class="resume-action-btn type-label-md">
+          BUKA PANDUAN
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16" style="margin-left: 0.5rem">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </a>
+      </div>
+
+      {categories.map(category => (
+        groupedBooks[category] && (
+          <section class="category-block">
+            <div class="category-header">
+              <h2 class="type-title-lg">{category}</h2>
+              <div class="line-decorator"></div>
+            </div>
+            
+            {Object.keys(groupedBooks[category]).map(subCategory => (
+              <div class="subcategory-group">
+                <div class="books-grid">
+                  {groupedBooks[category][subCategory].map((book: any) => (
+                    <BookCard book={book} />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </section>
+        )
+      ))}
+    </main>
+  </div>
+  <Footer />
+</Layout>
+
+<script>
+    try {
+      const stats = JSON.parse(localStorage.getItem('alkitab_stats') || '{"totalSwipes": 0, "streak": 0, "bookProgress": {}, "exploredBooks": []}');
+      
+      // 1. Update book card progress bars
+      const bookProgress = stats.bookProgress || {};
+      Object.keys(bookProgress).forEach(bookId => {
+        const progBar = document.getElementById(`prog-${bookId}`);
+        const swipeLabel = document.getElementById(`swipes-${bookId}`);
+        if (progBar && swipeLabel) {
+          let width = bookProgress[bookId];
+          
+          if (width === 100) {
+            swipeLabel.innerText = "SELESAI DIBACA";
+            swipeLabel.style.color = "var(--color-primary)";
+            swipeLabel.style.fontWeight = "700";
+          } else {
+            swipeLabel.innerText = `${width}% EKSPLORASI`;
+          }
+          
+          if (typeof width === 'number') width = width + '%';
+          progBar.style.width = width;
+        }
+      });
+
+      // 2. Render Resume Banner
+      if (stats.lastRead && stats.lastRead.bookId) {
+        const banner = document.getElementById('resumeBanner');
+        const bookNameEl = document.getElementById('resumeBookName');
+        const linkEl = document.getElementById('resumeLink') as HTMLAnchorElement;
+        
+        if (banner && bookNameEl && linkEl) {
+          bookNameEl.textContent = stats.lastRead.bookName;
+          linkEl.href = `/read/${stats.lastRead.bookId}`;
+          banner.style.display = 'flex';
+        }
+      }
+    } catch (e) {
+      console.error('Stats rendering error:', e);
+    }
+</script>
+
+<style>
+  .library-layout {
+    display: block; /* Force single column */
+    max-width: 1000px; /* Keep it constrained for better readability */
+    margin: 0 auto;
+    padding-top: 3rem;
+    padding-bottom: 6rem;
+  }
+
+  .editorial-header {
+    margin-bottom: 3rem;
+  }
+  
+  .main-title {
+    color: var(--color-primary);
+    margin-bottom: 1rem;
+  }
+  
+  .subtitle {
+    color: var(--on-surface);
+    opacity: 0.9;
+    max-width: 36rem;
+  }
+  
+  .subtitle.italic {
+    font-style: italic;
+  }
+
+  /* Resume Banner Styling (DESIGN.md sectioning and vellum rules) */
+  .resume-banner {
+    background-color: var(--surface-container-low);
+    border-radius: var(--radius-lg);
+    padding: 2rem 2.5rem;
+    margin-bottom: 4rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    box-shadow: var(--shadow-ambient);
+    border-left: 4px solid var(--color-primary);
+    animation: slideDown 0.5s var(--ease-out-expo);
+  }
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .resume-text-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .resume-tag {
+    color: var(--color-secondary);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+  }
+
+  .resume-book-title {
+    color: var(--color-primary);
+    font-weight: 700;
+  }
+
+  .resume-action-btn {
+    background-color: var(--color-primary);
+    color: var(--on-primary);
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    font-weight: 600;
+    box-shadow: var(--shadow-subtle);
+    transition: all var(--duration-fast);
+  }
+
+  .resume-action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-ambient);
+  }
+
+  .category-block {
+    margin-bottom: 5rem;
+  }
+  
+  .category-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  
+  .line-decorator {
+    flex-grow: 1;
+    height: 1px;
+    background-color: var(--outline-variant);
+  }
+
+  .books-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+  }
+  @media (min-width: 768px) {
+    .books-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 2.5rem; }
+  }
+</style>

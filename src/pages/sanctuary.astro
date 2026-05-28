@@ -1,0 +1,1206 @@
+---
+import Layout from '../layouts/Layout.astro';
+import StatsHeader from '../components/StatsHeader.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Layout title="Sanctuari – Perjalanan Hikmat">
+  <StatsHeader />
+  
+  <div class="sanctuary-layout container">
+    <main class="dashboard-content">
+
+      <!-- =========================================
+           HEADER
+      ========================================== -->
+      <div class="editorial-header">
+        <h1 class="type-display-lg main-title">Sanctuari</h1>
+        <p class="type-body-lg subtitle">
+          Pantau perjalanan rohani Anda — setiap hari yang setia membawa pemahaman yang lebih dalam.
+        </p>
+      </div>
+
+      <!-- =========================================
+           SEKSI 0: AYAT HARI INI
+      ========================================== -->
+      <section class="section-block">
+        <div class="section-label type-label-md">AYAT HARI INI</div>
+        <div class="daily-verse-card">
+          <div class="dv-decoration" aria-hidden="true">✦</div>
+          <blockquote class="dv-text type-body-lg" id="dailyVerseText">Memuat ayat...</blockquote>
+          <cite class="dv-ref type-label-md" id="dailyVerseRef"></cite>
+        </div>
+      </section>
+
+      <!-- =========================================
+           SEKSI 1: STATISTIK UTAMA
+      ========================================== -->
+      <section class="section-block">
+        <div class="section-label type-label-md">STATISTIK PERJALANAN</div>
+        <div class="stats-row">
+
+          <!-- Streak Baca Harian -->
+          <div class="stat-card stat-streak">
+            <div class="stat-icon">🔥</div>
+            <div class="stat-value type-display-lg" id="readingStreak">0</div>
+            <div class="stat-name type-label-md">Hari Berturut-turut</div>
+          </div>
+
+          <!-- Total Kitab Dijelajahi -->
+          <div class="stat-card stat-books">
+            <div class="stat-icon">📖</div>
+            <div class="stat-value type-display-lg" id="exploredBooksCount">0</div>
+            <div class="stat-name type-label-md">Kitab Dijelajahi</div>
+          </div>
+
+          <!-- Skor Kuis -->
+          <div class="stat-card stat-quiz">
+            <div class="stat-icon">⭐</div>
+            <div class="stat-value type-display-lg" id="quizTotalScore">0</div>
+            <div class="stat-name type-label-md">Poin Kuis</div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- =========================================
+           SEKSI 1b: PROGRESS BACAAN ALKITAB
+      ========================================== -->
+      <section class="section-block">
+        <div class="section-label type-label-md">PROGRESS BACAAN ALKITAB</div>
+        <div class="reading-progress-card">
+          <!-- Mega Progress Bar -->
+          <div class="rp-header">
+            <div class="rp-totals">
+              <span class="rp-pct type-display-lg" id="totalReadPct">0%</span>
+              <div class="rp-detail">
+                <span class="type-title-md rp-read" id="totalReadChapters">0</span>
+                <span class="type-body-lg rp-sep"> / 1189 </span>
+                <span class="type-label-md rp-label">bab dibaca</span>
+              </div>
+            </div>
+            <div class="rp-testament">
+              <div class="testament-stat">
+                <span class="type-label-md t-label">PL</span>
+                <span class="type-title-md t-val" id="plPct">0%</span>
+              </div>
+              <div class="testament-stat">
+                <span class="type-label-md t-label">PB</span>
+                <span class="type-title-md t-val" id="pbPct">0%</span>
+              </div>
+            </div>
+          </div>
+          <div class="rp-track">
+            <div class="rp-fill" id="totalReadFill" style="width:0%"></div>
+          </div>
+          <!-- Per-book progress list -->
+          <div class="rp-books" id="rpBooksList">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================
+           SEKSI 2: KUIS INTERAKTIF
+      ========================================== -->
+      <section class="section-block">
+        <div class="section-label type-label-md">KUIS LENTERA IMAN</div>
+        <div class="quiz-card">
+
+          <!-- Header kuis -->
+          <div class="quiz-header">
+            <div class="quiz-header-left">
+              <p class="type-body-lg quiz-question" id="quizQuestionText">
+                Menyiapkan pertanyaan kuis...
+              </p>
+              <div class="quiz-progress-row">
+                <span class="type-label-md quiz-progress-label">Soal</span>
+                <span class="type-label-md quiz-progress-num" id="quizProgressNum">1 / 5</span>
+              </div>
+            </div>
+            <div class="quiz-score-badge">
+              <span class="score-num type-title-lg" id="quizScoreDisplay">0</span>
+              <span class="type-label-md score-label">poin</span>
+            </div>
+          </div>
+
+          <!-- Pilihan Jawaban -->
+          <div class="quiz-options-list" id="quizOptionsList">
+            <!-- Tombol jawaban disisipkan oleh JS -->
+          </div>
+
+          <!-- Feedback -->
+          <div class="quiz-feedback-box" id="quizFeedbackBox">
+            <p class="type-label-md feedback-status" id="feedbackStatus">BENAR!</p>
+            <p class="type-body-lg feedback-explanation" id="feedbackExplText">
+              Penjelasan lengkap mengenai jawaban ini.
+            </p>
+            <button class="next-quiz-btn type-label-md" id="nextQuizBtn">
+              PERTANYAAN BERIKUTNYA &rarr;
+            </button>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- =========================================
+           SEKSI 3: RIWAYAT BACAAN
+      ========================================== -->
+      <section class="section-block">
+        <div class="section-label type-label-md">RIWAYAT PENELUSURAN KITAB</div>
+        <div class="affinity-card" id="affinityContainer">
+          <p class="type-body-lg empty-msg" id="noAffinityMsg">
+            Belum ada kitab yang dijelajahi. Mulai baca dari 
+            <a href="/" class="link-inline">Rak Buku</a>.
+          </p>
+          <div id="affinityList" class="affinity-list"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <Footer />
+</Layout>
+
+<script>
+  try {
+    // ----------------------------------------
+    // 1. AMBIL DATA DARI LOCALSTORAGE
+    // ----------------------------------------
+    const raw = localStorage.getItem('alkitab_stats');
+    const stats = raw
+      ? JSON.parse(raw)
+      : { totalSwipes: 0, streak: 0, exploredBooks: [], bookProgress: {} };
+
+    // Normalkan field penting agar tidak null/undefined
+    const readingStreak  = Number(stats.streak) || 0;
+    const exploredBooks  = Array.isArray(stats.exploredBooks) ? stats.exploredBooks : [];
+    const bookProgress   = (stats.bookProgress && typeof stats.bookProgress === 'object')
+                           ? stats.bookProgress : {};
+    const bookReadAt     = (stats.bookReadAt && typeof stats.bookReadAt === 'object')
+                           ? stats.bookReadAt : {};
+
+    // Skor & index kuis disimpan terpisah agar tidak bercampur dengan data baca
+    let quizScore        = parseInt(localStorage.getItem('catholic_quiz_score')  || '0', 10);
+    let currentQuizIndex = parseInt(localStorage.getItem('catholic_quiz_index')  || '0', 10);
+
+    // ----------------------------------------
+    // 2. PROGRESS BACAAN PER BAB
+    // ----------------------------------------
+    const readChapters = (stats.readChapters && typeof stats.readChapters === 'object') ? stats.readChapters : {};
+    // readChapters format: { "kej": [1, 3, 5], "mat": [1, 2] } — list of read chapter numbers
+
+    // Bible metadata for progress calculation
+    const bibleMetadata = [
+      {"id":"kej","name":"Kejadian","cat":"PL","ch":50},{"id":"kel","name":"Keluaran","cat":"PL","ch":40},{"id":"im","name":"Imamat","cat":"PL","ch":27},{"id":"bil","name":"Bilangan","cat":"PL","ch":36},{"id":"ul","name":"Ulangan","cat":"PL","ch":34},
+      {"id":"yos","name":"Yosua","cat":"PL","ch":24},{"id":"hak","name":"Hakim-hakim","cat":"PL","ch":21},{"id":"rut","name":"Rut","cat":"PL","ch":4},{"id":"1sam","name":"1 Samuel","cat":"PL","ch":31},{"id":"2sam","name":"2 Samuel","cat":"PL","ch":24},
+      {"id":"1raj","name":"1 Raja-raja","cat":"PL","ch":22},{"id":"2raj","name":"2 Raja-raja","cat":"PL","ch":25},{"id":"1taw","name":"1 Tawarikh","cat":"PL","ch":29},{"id":"2taw","name":"2 Tawarikh","cat":"PL","ch":36},{"id":"ezr","name":"Ezra","cat":"PL","ch":10},
+      {"id":"neh","name":"Nehemia","cat":"PL","ch":13},{"id":"est","name":"Ester","cat":"PL","ch":10},{"id":"ayb","name":"Ayub","cat":"PL","ch":42},{"id":"maz","name":"Mazmur","cat":"PL","ch":150},{"id":"ams","name":"Amsal","cat":"PL","ch":31},
+      {"id":"pkh","name":"Pengkhotbah","cat":"PL","ch":12},{"id":"kid","name":"Kidung Agung","cat":"PL","ch":8},{"id":"yes","name":"Yesaya","cat":"PL","ch":66},{"id":"yer","name":"Yeremia","cat":"PL","ch":52},{"id":"rat","name":"Ratapan","cat":"PL","ch":5},
+      {"id":"yeh","name":"Yehezkiel","cat":"PL","ch":48},{"id":"dan","name":"Daniel","cat":"PL","ch":12},{"id":"hos","name":"Hosea","cat":"PL","ch":14},{"id":"yoel","name":"Yoel","cat":"PL","ch":3},{"id":"amos","name":"Amos","cat":"PL","ch":9},
+      {"id":"ob","name":"Obaja","cat":"PL","ch":1},{"id":"yun","name":"Yunus","cat":"PL","ch":4},{"id":"mik","name":"Mikha","cat":"PL","ch":7},{"id":"nah","name":"Nahum","cat":"PL","ch":3},{"id":"hab","name":"Habakuk","cat":"PL","ch":3},
+      {"id":"zef","name":"Zefanya","cat":"PL","ch":3},{"id":"hag","name":"Hagai","cat":"PL","ch":2},{"id":"zak","name":"Zakharia","cat":"PL","ch":14},{"id":"mal","name":"Maleakhi","cat":"PL","ch":4},
+      {"id":"tob","name":"Tobit","cat":"PL","ch":14},{"id":"yud","name":"Yudit","cat":"PL","ch":16},{"id":"t-est","name":"Tambahan Ester","cat":"PL","ch":7},{"id":"keb","name":"Kebijaksanaan","cat":"PL","ch":19},{"id":"sir","name":"Ben Sirakh","cat":"PL","ch":51},
+      {"id":"bar","name":"Barukh","cat":"PL","ch":6},{"id":"t-dan","name":"Tambahan Daniel","cat":"PL","ch":3},{"id":"1mak","name":"1 Makabe","cat":"PL","ch":16},{"id":"2mak","name":"2 Makabe","cat":"PL","ch":15},
+      {"id":"mat","name":"Matius","cat":"PB","ch":28},{"id":"mrk","name":"Markus","cat":"PB","ch":16},{"id":"luk","name":"Lukas","cat":"PB","ch":24},{"id":"yoh","name":"Yohanes","cat":"PB","ch":21},{"id":"kis","name":"Kisah Para Rasul","cat":"PB","ch":28},
+      {"id":"rm","name":"Roma","cat":"PB","ch":16},{"id":"1kor","name":"1 Korintus","cat":"PB","ch":16},{"id":"2kor","name":"2 Korintus","cat":"PB","ch":13},{"id":"gal","name":"Galatia","cat":"PB","ch":6},{"id":"ef","name":"Efesus","cat":"PB","ch":6},
+      {"id":"flp","name":"Filipi","cat":"PB","ch":4},{"id":"kol","name":"Kolose","cat":"PB","ch":4},{"id":"1tes","name":"1 Tesalonika","cat":"PB","ch":5},{"id":"2tes","name":"2 Tesalonika","cat":"PB","ch":3},{"id":"1tim","name":"1 Timotius","cat":"PB","ch":6},
+      {"id":"2tim","name":"2 Timotius","cat":"PB","ch":4},{"id":"tit","name":"Titus","cat":"PB","ch":3},{"id":"flm","name":"Filemon","cat":"PB","ch":1},{"id":"ibr","name":"Ibrani","cat":"PB","ch":13},{"id":"yak","name":"Yakobus","cat":"PB","ch":5},
+      {"id":"1ptr","name":"1 Petrus","cat":"PB","ch":5},{"id":"2ptr","name":"2 Petrus","cat":"PB","ch":3},{"id":"1yoh","name":"1 Yohanes","cat":"PB","ch":5},{"id":"2yoh","name":"2 Yohanes","cat":"PB","ch":1},{"id":"3yoh","name":"3 Yohanes","cat":"PB","ch":1},
+      {"id":"yud-sb","name":"Yudas","cat":"PB","ch":1},{"id":"why","name":"Wahyu","cat":"PB","ch":22}
+    ];
+
+    const TOTAL_CHAPTERS = 1189;
+    const PL_TOTAL = bibleMetadata.filter(b => b.cat === 'PL').reduce((s, b) => s + b.ch, 0);
+    const PB_TOTAL = bibleMetadata.filter(b => b.cat === 'PB').reduce((s, b) => s + b.ch, 0);
+
+    let totalRead = 0;
+    let plRead = 0;
+    let pbRead = 0;
+
+    // Books that have any chapters read
+    const booksWithProgress = [];
+
+    bibleMetadata.forEach(book => {
+      const chaptersRead = Array.isArray(readChapters[book.id]) ? readChapters[book.id].length : 0;
+      totalRead += chaptersRead;
+      if (book.cat === 'PL') plRead += chaptersRead;
+      else pbRead += chaptersRead;
+      if (chaptersRead > 0) {
+        booksWithProgress.push({ ...book, read: chaptersRead });
+      }
+    });
+
+    const totalPct = Math.round((totalRead / TOTAL_CHAPTERS) * 100);
+    const plPct = Math.round((plRead / PL_TOTAL) * 100);
+    const pbPct = Math.round((pbRead / PB_TOTAL) * 100);
+
+    // Update DOM
+    const totalPctEl = document.getElementById('totalReadPct');
+    const totalChEl  = document.getElementById('totalReadChapters');
+    const totalFillEl = document.getElementById('totalReadFill');
+    const plPctEl    = document.getElementById('plPct');
+    const pbPctEl    = document.getElementById('pbPct');
+    const rpBooksEl  = document.getElementById('rpBooksList');
+
+    if (totalPctEl) totalPctEl.textContent = totalPct + '%';
+    if (totalChEl)  totalChEl.textContent  = String(totalRead);
+    if (plPctEl)    plPctEl.textContent    = plPct + '%';
+    if (pbPctEl)    pbPctEl.textContent    = pbPct + '%';
+    if (totalFillEl) setTimeout(() => { totalFillEl.style.width = totalPct + '%'; }, 80);
+
+    if (rpBooksEl) {
+      if (booksWithProgress.length === 0) {
+        rpBooksEl.innerHTML = `<p class="type-body-lg rp-empty">Belum ada bab yang ditandai selesai. Mulai baca dan tandai bab untuk melacak perjalanan Anda!</p>`;
+      } else {
+        // Sort by most read first
+        booksWithProgress.sort((a, b) => b.read - a.read);
+        rpBooksEl.innerHTML = booksWithProgress.slice(0, 10).map(b => {
+          const pct = Math.round((b.read / b.ch) * 100);
+          const isComplete = pct === 100;
+          return `<div class="rp-book-row">
+            <a href="/read/${b.id}" class="rp-book-link">
+              <span class="rp-book-badge${isComplete ? ' complete' : ''}">${isComplete ? '✓' : b.read}</span>
+              <div class="rp-book-details">
+                <span class="rp-book-name type-label-md">${b.name}</span>
+                <div class="rp-book-track">
+                  <div class="rp-book-fill" style="width:${pct}%"></div>
+                </div>
+              </div>
+              <span class="rp-book-pct type-label-md">${pct}%</span>
+            </a>
+          </div>`;
+        }).join('');
+      }
+    }
+
+    // ----------------------------------------
+    // 2. TAMPILKAN STATISTIK UTAMA
+    // ----------------------------------------
+    const readingStreakEl   = document.getElementById('readingStreak');
+    const exploredCountEl   = document.getElementById('exploredBooksCount');
+    const quizTotalScoreEl  = document.getElementById('quizTotalScore');
+    const quizScoreDisplay  = document.getElementById('quizScoreDisplay');
+
+    if (readingStreakEl)  readingStreakEl.textContent  = String(readingStreak);
+    if (exploredCountEl)  exploredCountEl.textContent  = String(exploredBooks.length);
+    if (quizTotalScoreEl) quizTotalScoreEl.textContent = String(quizScore);
+    if (quizScoreDisplay) quizScoreDisplay.textContent = String(quizScore);
+
+    // ----------------------------------------
+    // AYAT HARIAN (berganti setiap hari, murni client-side)
+    // ----------------------------------------
+    const dailyVerses = [
+      { text: "Firman-Mu itu pelita bagi kakiku dan terang bagi jalanku.", ref: "Mazmur 119:105" },
+      { text: "TUHAN adalah gembalaku, takkan kekurangan aku.", ref: "Mazmur 23:1" },
+      { text: "Percayalah kepada TUHAN dengan segenap hatimu, dan janganlah bersandar kepada pengertianmu sendiri.", ref: "Amsal 3:5" },
+      { text: "Ia memberi kekuatan kepada yang lelah dan menambah semangat kepada yang tiada berdaya.", ref: "Yesaya 40:29" },
+      { text: "Karena begitu besar kasih Allah akan dunia ini, sehingga Ia telah mengaruniakan Anak-Nya yang tunggal.", ref: "Yohanes 3:16" },
+      { text: "Aku adalah jalan dan kebenaran dan hidup. Tidak ada seorangpun yang datang kepada Bapa, kalau tidak melalui Aku.", ref: "Yohanes 14:6" },
+      { text: "Aku hidup, tetapi bukan lagi aku sendiri yang hidup, melainkan Kristus yang hidup di dalam aku.", ref: "Galatia 2:20" },
+      { text: "Segala sesuatu dapat kutanggung di dalam Dia yang memberi kekuatan kepadaku.", ref: "Filipi 4:13" },
+      { text: "Mintalah, maka akan diberikan kepadamu; carilah, maka kamu akan mendapat; ketoklah, maka pintu akan dibukakan bagimu.", ref: "Matius 7:7" },
+      { text: "Berbahagialah orang yang miskin di hadapan Allah, karena merekalah yang empunya Kerajaan Sorga.", ref: "Matius 5:3" },
+      { text: "Janganlah khawatir tentang hari esok, karena hari esok mempunyai kesusahannya sendiri.", ref: "Matius 6:34" },
+      { text: "Kasihilah Tuhan, Allahmu, dengan segenap hatimu dan dengan segenap jiwamu dan dengan segenap akal budimu.", ref: "Matius 22:37" },
+      { text: "Berbahagialah orang yang suci hatinya, karena mereka akan melihat Allah.", ref: "Matius 5:8" },
+      { text: "Aku adalah kebangkitan dan hidup; barangsiapa percaya kepada-Ku, ia akan hidup walaupun ia sudah mati.", ref: "Yohanes 11:25" },
+      { text: "Damai sejahtera Kutinggalkan bagimu. Damai sejahtera-Ku Kuberikan kepadamu.", ref: "Yohanes 14:27" },
+      { text: "Marilah kepada-Ku, semua yang letih lesu dan berbeban berat, Aku akan memberi kelegaan kepadamu.", ref: "Matius 11:28" },
+      { text: "Jangan takut, sebab Aku menyertai engkau.", ref: "Yesaya 43:5" },
+      { text: "Allah itu bagi kita tempat perlindungan dan kekuatan, sebagai penolong dalam kesesakan sangat terbukti.", ref: "Mazmur 46:2" },
+      { text: "Bersyukurlah dalam segala hal, sebab itulah yang dikehendaki Allah di dalam Kristus Yesus bagi kamu.", ref: "1 Tesalonika 5:18" },
+      { text: "Jadilah pelaku firman dan bukan hanya pendengar saja.", ref: "Yakobus 1:22" },
+      { text: "Kasih itu sabar; kasih itu murah hati; ia tidak cemburu.", ref: "1 Korintus 13:4" },
+      { text: "Demikianlah tinggal ketiga hal ini, yaitu iman, pengharapan dan kasih, dan yang paling besar di antaranya ialah kasih.", ref: "1 Korintus 13:13" },
+      { text: "Janganlah kamu menjadi serupa dengan dunia ini, tetapi berubahlah oleh pembaharuan budimu.", ref: "Roma 12:2" },
+      { text: "Ia menyegarkan jiwaku. Ia menuntun aku di jalan yang benar oleh karena nama-Nya.", ref: "Mazmur 23:3" },
+      { text: "Aku mau memuji TUHAN pada segala waktu; puji-pujian kepada-Nya tetap di dalam mulutku.", ref: "Mazmur 34:2" },
+      { text: "Serahkanlah kuatirmu kepada-Nya, sebab Ia yang memelihara kamu.", ref: "1 Petrus 5:7" },
+      { text: "Berbahagialah orang yang lapar dan haus akan kebenaran, karena mereka akan dipuaskan.", ref: "Matius 5:6" },
+      { text: "Kuatkan dan teguhkanlah hatimu, jangan takut dan jangan gemetar, sebab TUHAN, Allahmu, Dialah yang berjalan menyertai engkau.", ref: "Ulangan 31:6" },
+      { text: "Biarlah kata-kataku dan pikiran hatiku berkenan di hadapan-Mu, ya TUHAN, gunung batuku dan penebusanku!", ref: "Mazmur 19:15" },
+      { text: "Sebab Aku ini mengetahui rancangan-rancangan apa yang ada pada-Ku mengenai kamu, rancangan damai sejahtera dan bukan rancangan kecelakaan.", ref: "Yeremia 29:11" },
+    ];
+
+    // Pilih ayat berdasarkan hari dalam tahun supaya berganti tiap hari
+    const now      = new Date();
+    const startOfYear = new Date(now.getFullYear(), 0, 0);
+    const dayOfYear   = Math.floor((now.getTime() - startOfYear.getTime()) / 86_400_000);
+    const todayVerse  = dailyVerses[dayOfYear % dailyVerses.length];
+
+    const dvTextEl = document.getElementById('dailyVerseText');
+    const dvRefEl  = document.getElementById('dailyVerseRef');
+    if (dvTextEl) dvTextEl.textContent = `"${todayVerse.text}"`;
+    if (dvRefEl)  dvRefEl.textContent  = `— ${todayVerse.ref}`;
+
+    // Tampilkan juga tanggal hari ini
+    const dateLabel = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const dvCard = document.querySelector('.daily-verse-card');
+    if (dvCard) dvCard.setAttribute('title', dateLabel);
+
+    // ----------------------------------------
+    // 3. LOGIKA KUIS
+    // ----------------------------------------
+    const quizQuestions = [
+      {
+        question: "Apa pusat dan puncak seluruh kehidupan sakramen dan jemaat Kristen dalam Gereja Katolik?",
+        options: ["Syahadat Para Rasul", "Sakramen Pengakuan Dosa", "Ekaristi Kudus", "Ibadat Harian (Brevir)"],
+        correctIndex: 2,
+        explanation: "Ekaristi Kudus adalah sumber dan puncak kehidupan Kristiani karena di dalamnya terkandung diri Yesus Kristus sendiri secara riil (KGK 1324)."
+      },
+      {
+        question: "Apa doa Kristen paling sempurna yang diajarkan oleh Yesus Kristus sendiri?",
+        options: ["Salam Maria", "Doa Bapa Kami", "Mulia Kepada Bapa", "Doa Syahadat (Kredo)"],
+        correctIndex: 1,
+        explanation: "Doa Bapa Kami adalah doa kristiani paling sempurna karena diajarkan langsung oleh Yesus sebagai ringkasan seluruh pesan Injil (KGK 2759)."
+      },
+      {
+        question: "Pilihan manakah di bawah ini yang merupakan tiga Kebajikan Teologal (Keutamaan Ilahi)?",
+        options: ["Kebijaksanaan, Keadilan, Keberanian", "Kemurnian, Kerendahan Hati, Ketaatan", "Iman, Harapan, Kasih", "Kemiskinan, Kemurnian, Ketaatan Biara"],
+        correctIndex: 2,
+        explanation: "Iman, Harapan, dan Kasih adalah kebajikan teologal yang dicurahkan langsung oleh Allah untuk memampukan kita berelasi dengan-Nya (KGK 1803)."
+      },
+      {
+        question: "Siapakah Hawa Baru yang ketaatan imannya memulihkan ketidaktaatan Hawa pertama?",
+        options: ["Santa Perawan Maria", "Santa Maria Magdalena", "Santa Elisabeth", "Santa Helena"],
+        correctIndex: 0,
+        explanation: "Santa Perawan Maria bekerja sama secara aktif dan ketaatan imannya (Fiat) membalikkan ketidaktaatan Hawa pertama (KGK 484)."
+      },
+      {
+        question: "Sakramen apakah yang menghapus dosa asal dan menyatukan kita sebagai anggota Tubuh Mistik Kristus?",
+        options: ["Sakramen Penguatan (Krisma)", "Sakramen Rekonsiliasi (Pengakuan Dosa)", "Sakramen Pembaptisan", "Sakramen Imamat Kudus"],
+        correctIndex: 2,
+        explanation: "Sakramen Pembaptisan adalah sakramen inisiasi pertama yang menghapus dosa asal, dosa pribadi, dan menyatukan kita dengan Kristus (KGK 1213)."
+      }
+    ];
+
+    const totalQuestions = quizQuestions.length;
+
+    // Pastikan index tidak melampaui jumlah soal
+    if (currentQuizIndex >= totalQuestions) {
+      currentQuizIndex = 0;
+      localStorage.setItem('catholic_quiz_index', '0');
+    }
+
+    const qTextEl         = document.getElementById('quizQuestionText');
+    const optionsListEl   = document.getElementById('quizOptionsList');
+    const feedbackBox     = document.getElementById('quizFeedbackBox');
+    const feedbackStatus  = document.getElementById('feedbackStatus');
+    const feedbackExplText = document.getElementById('feedbackExplText');
+    const nextBtn         = document.getElementById('nextQuizBtn');
+    const progressNumEl   = document.getElementById('quizProgressNum');
+
+    /** Perbarui semua elemen skor di halaman */
+    const updateScoreDisplay = () => {
+      if (quizScoreDisplay)  quizScoreDisplay.textContent  = String(quizScore);
+      if (quizTotalScoreEl)  quizTotalScoreEl.textContent  = String(quizScore);
+    };
+
+    /** Muat satu soal kuis berdasarkan index */
+    const loadQuizQuestion = (index: number) => {
+      if (!qTextEl || !optionsListEl || !feedbackBox || !progressNumEl) return;
+
+      // Sembunyikan feedback, kosongkan opsi
+      feedbackBox.classList.remove('visible');
+      optionsListEl.innerHTML = '';
+
+      const quiz = quizQuestions[index];
+      qTextEl.textContent = quiz.question;
+      progressNumEl.textContent = `${index + 1} / ${totalQuestions}`;
+
+      const letters = ['A', 'B', 'C', 'D'];
+      quiz.options.forEach((optText, optIdx) => {
+        const btn = document.createElement('button');
+        btn.className = 'quiz-opt-btn';
+        btn.innerHTML = `
+          <div class="opt-letter">${letters[optIdx]}</div>
+          <div class="opt-text">${optText}</div>
+        `;
+        btn.addEventListener('click', () => handleQuizAnswer(optIdx, btn));
+        optionsListEl.appendChild(btn);
+      });
+    };
+
+    /** Tangani jawaban yang dipilih pengguna */
+    const handleQuizAnswer = (selectedIndex: number, clickedBtn: HTMLButtonElement) => {
+      const quiz = quizQuestions[currentQuizIndex];
+      const allBtns = optionsListEl?.querySelectorAll('.quiz-opt-btn');
+
+      // Nonaktifkan semua tombol setelah menjawab
+      allBtns?.forEach(btn => (btn as HTMLButtonElement).disabled = true);
+
+      if (selectedIndex === quiz.correctIndex) {
+        clickedBtn.classList.add('correct');
+        quizScore += 10;
+        localStorage.setItem('catholic_quiz_score', String(quizScore));
+        if (feedbackStatus) {
+          feedbackStatus.textContent = "BENAR! 🌟";
+          feedbackStatus.dataset.result = "correct";
+        }
+      } else {
+        clickedBtn.classList.add('incorrect');
+        // Tampilkan jawaban yang benar
+        const correctBtn = allBtns?.[quiz.correctIndex];
+        if (correctBtn) correctBtn.classList.add('correct-highlight');
+        if (feedbackStatus) {
+          feedbackStatus.textContent = "SALAH ⚠️";
+          feedbackStatus.dataset.result = "incorrect";
+        }
+      }
+
+      updateScoreDisplay();
+      if (feedbackExplText) feedbackExplText.textContent = quiz.explanation;
+      if (feedbackBox) feedbackBox.classList.add('visible');
+    };
+
+    // Tombol "Pertanyaan Berikutnya"
+    nextBtn?.addEventListener('click', () => {
+      currentQuizIndex = (currentQuizIndex + 1) % totalQuestions;
+      localStorage.setItem('catholic_quiz_index', String(currentQuizIndex));
+      loadQuizQuestion(currentQuizIndex);
+    });
+
+    // Muat soal pertama
+    loadQuizQuestion(currentQuizIndex);
+
+    // ----------------------------------------
+    // 4. RIWAYAT PENELUSURAN KITAB
+    // ----------------------------------------
+    const bookNamesMap: Record<string, string> = {
+      kej: "Kejadian", kel: "Keluaran", im: "Imamat", bil: "Bilangan", ul: "Ulangan",
+      yos: "Yosua", hak: "Hakim-hakim", rut: "Rut", "1sam": "1 Samuel", "2sam": "2 Samuel",
+      "1raj": "1 Raja-raja", "2raj": "2 Raja-raja", "1taw": "1 Tawarikh", "2taw": "2 Tawarikh",
+      ezr: "Ezra", neh: "Nehemia", est: "Ester", ayb: "Ayub", maz: "Mazmur", ams: "Amsal",
+      pkh: "Pengkhotbah", kid: "Kidung Agung", yes: "Yesaya", yer: "Yeremia", rat: "Ratapan",
+      yeh: "Yehezkiel", dan: "Daniel", hos: "Hosea", yoel: "Yoel", amos: "Amos", ob: "Obaja",
+      yun: "Yunus", mik: "Mikha", nah: "Nahum", hab: "Habakuk", zef: "Zefanya", hag: "Hagai",
+      zak: "Zakharia", mal: "Maleakhi", tob: "Tobit", yud: "Yudit", "t-est": "Tambahan Ester",
+      keb: "Kebijaksanaan Salomo", sir: "Yesus bin Sirakh", bar: "Barukh", "t-dan": "Tambahan Daniel",
+      "1mak": "1 Makabe", "2mak": "2 Makabe", mat: "Matius", mrk: "Markus", luk: "Lukas",
+      yoh: "Yohanes", kis: "Kisah Para Rasul", rm: "Roma", "1kor": "1 Korintus", "2kor": "2 Korintus",
+      gal: "Galatia", ef: "Efesus", flp: "Filipi", kol: "Kolose", "1tes": "1 Tesalonika",
+      "2tes": "2 Tesalonika", "1tim": "1 Timotius", "2tim": "2 Timotius", tit: "Titus",
+      flm: "Filemon", ibr: "Ibrani", yak: "Yakobus", "1ptr": "1 Petrus", "2ptr": "2 Petrus",
+      "1yoh": "1 Yohanes", "2yoh": "2 Yohanes", "3yoh": "3 Yohanes", "yud-sb": "Yudas", why: "Wahyu"
+    };
+
+    const affinityList = document.getElementById('affinityList');
+    const noMsg        = document.getElementById('noAffinityMsg');
+
+    if (exploredBooks.length > 0 && affinityList) {
+      if (noMsg) noMsg.style.display = 'none';
+
+      // Bersihkan sebelum menambahkan (cegah duplikasi pada view transition)
+      affinityList.innerHTML = '';
+
+      // Tampilkan maks 6 kitab terakhir (dibalik agar terbaru di atas)
+      const recentBooks = [...exploredBooks].reverse().slice(0, 6);
+
+      recentBooks.forEach((bookId: string) => {
+        const bookName  = bookNamesMap[bookId] || bookId.toUpperCase();
+        const badgeText = bookName.substring(0, 2).toUpperCase();
+
+        // Tampilkan tanggal eksplorasi pertama (dari bookReadAt) atau status generik
+        const readAtRaw = bookReadAt[bookId];
+        let statusLabel = 'Sudah Dijelajahi ✓';
+        if (readAtRaw) {
+          const readDate = new Date(readAtRaw);
+          statusLabel = new Intl.DateTimeFormat('id-ID', {
+            day: 'numeric', month: 'short', year: 'numeric'
+          }).format(readDate);
+        }
+
+        const item = document.createElement('a');
+        item.href = `/read/${bookId}`;
+        item.className = 'affinity-item';
+        item.innerHTML = `
+          <div class="book-badge">${badgeText}</div>
+          <div class="affinity-details">
+            <div class="aff-head">
+              <span class="aff-book-name type-title-md">${bookName}</span>
+              <span class="aff-progress-pct type-label-md">${statusLabel}</span>
+            </div>
+            <div class="progress-track"><div class="progress-fill" style="width: 100%"></div></div>
+          </div>
+          <svg class="aff-arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" height="18">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        `;
+        affinityList.appendChild(item);
+      });
+    }
+
+  } catch (e) {
+    console.error("Gagal memuat data Sanctuari:", e);
+  }
+</script>
+
+<style is:global>
+  /* ============================================
+     LAYOUT UTAMA
+  ============================================ */
+  .sanctuary-layout {
+    max-width: 720px;
+    margin: 0 auto;
+    padding-top: 3rem;
+    padding-bottom: 6rem;
+  }
+
+  .editorial-header {
+    margin-bottom: 3rem;
+  }
+
+  .main-title {
+    color: var(--color-primary);
+    margin-bottom: 0.75rem;
+    font-size: 2.75rem;
+  }
+
+  .subtitle {
+    color: var(--on-surface-variant);
+    line-height: 1.6;
+    max-width: 52ch;
+  }
+
+  /* ============================================
+     SEKSI
+  ============================================ */
+  .section-block {
+    margin-bottom: 2.5rem;
+  }
+
+  .section-label {
+    color: var(--color-secondary);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    margin-bottom: 1rem;
+  }
+
+  /* ============================================
+     AYAT HARIAN
+  ============================================ */
+  .daily-verse-card {
+    background: linear-gradient(135deg, var(--surface-container-lowest) 0%, var(--surface-container-low) 100%);
+    border: 1px solid var(--outline-variant);
+    border-left: 4px solid var(--color-secondary);
+    border-radius: var(--radius-lg);
+    padding: 2rem 2rem 1.75rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .daily-verse-card::before {
+    content: '\201C';
+    position: absolute;
+    top: -0.5rem;
+    right: 1.5rem;
+    font-size: 8rem;
+    color: var(--color-secondary);
+    opacity: 0.06;
+    font-family: var(--font-serif);
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  .dv-decoration {
+    font-size: 1rem;
+    color: var(--color-secondary);
+    opacity: 0.7;
+    margin-bottom: 0.75rem;
+    letter-spacing: 0.3em;
+  }
+
+  .dv-text {
+    font-family: var(--font-serif);
+    font-style: italic;
+    line-height: 1.7;
+    color: var(--on-surface);
+    margin: 0 0 1rem;
+    font-size: 1.1rem;
+    quotes: none;
+  }
+
+  .dv-ref {
+    color: var(--color-primary);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    font-style: normal;
+  }
+
+  /* ============================================
+     STAT CARDS (baris statistik)
+  ============================================ */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  .stat-card {
+    background: var(--surface-container-lowest);
+    border: 1px solid var(--outline-variant);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem 1rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    transition: transform var(--duration-fast), box-shadow var(--duration-fast);
+  }
+
+  .stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-subtle);
+  }
+
+  .stat-streak  { border-top: 3px solid #f97316; }
+  .stat-books   { border-top: 3px solid var(--color-primary); }
+  .stat-quiz    { border-top: 3px solid var(--color-secondary); }
+
+  .stat-icon {
+    font-size: 1.5rem;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+  }
+
+  .stat-value {
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--on-surface);
+  }
+
+  .stat-streak  .stat-value { color: #f97316; }
+  .stat-books   .stat-value { color: var(--color-primary); }
+  .stat-quiz    .stat-value { color: var(--color-secondary); }
+
+  .stat-name {
+    color: var(--on-surface-variant);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    font-size: 0.7rem;
+  }
+
+  @media (max-width: 480px) {
+    .stats-row {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.625rem;
+    }
+    .stat-value {
+      font-size: 2.25rem;
+    }
+  }
+
+  /* ============================================
+     QUIZ CARD
+  ============================================ */
+  .quiz-card {
+    background: var(--surface-container-lowest);
+    border: 1px solid var(--outline-variant);
+    border-top: 4px solid var(--color-primary);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .quiz-header {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+    padding: 1.75rem 2rem;
+    border-bottom: 1px solid var(--surface-container-highest);
+  }
+
+  .quiz-header-left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .quiz-question {
+    font-weight: 600;
+    line-height: 1.55;
+    color: var(--on-surface);
+    margin: 0;
+  }
+
+  .quiz-progress-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    color: var(--on-surface-variant);
+  }
+
+  .quiz-progress-num {
+    font-weight: 700;
+    color: var(--color-primary);
+  }
+
+  .quiz-score-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--surface-container-low);
+    border: 1px solid var(--outline-variant);
+    border-radius: var(--radius-md);
+    padding: 0.75rem 1.25rem;
+    flex-shrink: 0;
+    min-width: 72px;
+    gap: 0.15rem;
+  }
+
+  .score-num {
+    font-weight: 700;
+    color: var(--color-secondary);
+  }
+
+  .score-label {
+    color: var(--on-surface-variant);
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* Pilihan Jawaban */
+  .quiz-options-list {
+    padding: 1.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .quiz-opt-btn {
+    width: 100%;
+    background: var(--surface-container-low);
+    color: var(--on-surface);
+    border: 2px solid var(--outline-variant);
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius-lg);
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    transition: all var(--duration-fast) var(--ease-out-expo);
+  }
+
+  .quiz-opt-btn:hover:not(:disabled) {
+    background: var(--surface-container);
+    border-color: var(--color-primary);
+    transform: translateX(4px);
+  }
+
+  .opt-letter {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-full);
+    background: var(--surface-container-highest);
+    color: var(--on-surface-variant);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 700;
+    font-size: 0.875rem;
+    flex-shrink: 0;
+    transition: all var(--duration-fast);
+  }
+
+  .quiz-opt-btn:hover:not(:disabled) .opt-letter {
+    background: var(--color-primary);
+    color: var(--on-primary);
+  }
+
+  .opt-text {
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  /* State jawaban */
+  .quiz-opt-btn.correct {
+    background: var(--color-secondary);
+    border-color: var(--color-secondary);
+    color: white;
+  }
+  .quiz-opt-btn.correct .opt-letter {
+    background: white;
+    color: var(--color-secondary);
+  }
+
+  .quiz-opt-btn.incorrect {
+    background: var(--color-error);
+    border-color: var(--color-error);
+    color: white;
+  }
+  .quiz-opt-btn.incorrect .opt-letter {
+    background: white;
+    color: var(--color-error);
+  }
+
+  .quiz-opt-btn.correct-highlight {
+    border-color: var(--color-secondary);
+    background: var(--surface-container-low);
+  }
+  .quiz-opt-btn.correct-highlight .opt-letter {
+    background: var(--color-secondary);
+    color: white;
+  }
+
+  /* Feedback */
+  .quiz-feedback-box {
+    display: none;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1.5rem 2rem;
+    background: var(--surface-container-low);
+    border-top: 1px solid var(--outline-variant);
+  }
+
+  .quiz-feedback-box.visible {
+    display: flex;
+  }
+
+  .feedback-status {
+    font-weight: 700;
+    font-size: 0.875rem;
+    letter-spacing: 0.05em;
+    margin: 0;
+  }
+
+  .feedback-status[data-result="correct"] { color: var(--color-secondary); }
+  .feedback-status[data-result="incorrect"] { color: var(--color-error); }
+
+  .feedback-explanation {
+    color: var(--on-surface-variant);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .next-quiz-btn {
+    align-self: flex-start;
+    margin-top: 0.5rem;
+    background: var(--color-primary);
+    color: var(--on-primary);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    transition: opacity var(--duration-fast);
+  }
+
+  .next-quiz-btn:hover {
+    opacity: 0.88;
+  }
+
+  /* ============================================
+     AFFINITY / RIWAYAT BACAAN
+  ============================================ */
+  .affinity-card {
+    background: var(--surface-container-lowest);
+    border: 1px solid var(--outline-variant);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+  }
+
+  .empty-msg {
+    text-align: center;
+    color: var(--on-surface-variant);
+    padding: 2rem 0;
+    margin: 0;
+  }
+
+  .link-inline {
+    color: var(--color-primary);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .affinity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .affinity-item {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius-md);
+    background: var(--surface-container-low);
+    border: 1px solid transparent;
+    text-decoration: none;
+    color: inherit;
+    transition: all var(--duration-fast);
+  }
+
+  .affinity-item:hover {
+    background: var(--surface-container);
+    border-color: var(--color-primary);
+    transform: translateX(4px);
+  }
+
+  .book-badge {
+    width: 48px;
+    height: 48px;
+    background: var(--surface-container-highest);
+    display: grid;
+    place-items: center;
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--color-primary);
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
+    transition: all var(--duration-fast);
+  }
+
+  .affinity-item:hover .book-badge {
+    background: var(--color-primary);
+    color: var(--on-primary);
+  }
+
+  .affinity-details {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .aff-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    gap: 0.5rem;
+  }
+
+  .aff-book-name {
+    color: var(--on-surface);
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .aff-progress-pct {
+    color: var(--color-secondary);
+    font-weight: 700;
+    flex-shrink: 0;
+    font-size: 0.75rem;
+  }
+
+  .progress-track {
+    height: 5px;
+    background: var(--surface-container-high);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--color-secondary);
+    border-radius: var(--radius-full);
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .aff-arrow {
+    color: var(--on-surface-variant);
+    opacity: 0.4;
+    flex-shrink: 0;
+    transition: opacity var(--duration-fast), transform var(--duration-fast);
+  }
+
+  .affinity-item:hover .aff-arrow {
+    opacity: 1;
+    transform: translateX(3px);
+    color: var(--color-primary);
+  }
+
+  /* ============================================
+     READING PROGRESS CARD
+  ============================================ */
+  .reading-progress-card {
+    background: var(--surface-container-lowest);
+    border: 1px solid var(--outline-variant);
+    border-top: 3px solid var(--color-primary);
+    border-radius: var(--radius-lg);
+    padding: 1.75rem;
+  }
+
+  .rp-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 1.25rem;
+    gap: 1rem;
+  }
+
+  .rp-totals {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+  }
+
+  .rp-pct {
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    line-height: 1;
+  }
+
+  .rp-detail {
+    display: flex;
+    align-items: baseline;
+    gap: 0.25rem;
+    color: var(--on-surface-variant);
+    flex-wrap: wrap;
+  }
+
+  .rp-read {
+    color: var(--on-surface);
+    font-weight: 700;
+  }
+
+  .rp-sep { color: var(--on-surface-variant); }
+  .rp-label { color: var(--on-surface-variant); font-size: 0.7rem; letter-spacing: 0.05em; }
+
+  .rp-testament {
+    display: flex;
+    gap: 1.25rem;
+    flex-shrink: 0;
+  }
+
+  .testament-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+  }
+
+  .t-label {
+    font-size: 0.6rem;
+    color: var(--on-surface-variant);
+    letter-spacing: 0.1em;
+    font-weight: 700;
+  }
+
+  .t-val {
+    font-weight: 700;
+    color: var(--color-secondary);
+  }
+
+  .rp-track {
+    height: 8px;
+    background: var(--surface-container-high);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    margin-bottom: 1.75rem;
+  }
+
+  .rp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+    border-radius: var(--radius-full);
+    transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .rp-books {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .rp-empty {
+    color: var(--on-surface-variant);
+    text-align: center;
+    padding: 1rem 0;
+    font-style: italic;
+    font-size: 0.9rem;
+    margin: 0;
+  }
+
+  .rp-book-row { }
+
+  .rp-book-link {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: inherit;
+    transition: background var(--duration-fast);
+  }
+
+  .rp-book-link:hover {
+    background: var(--surface-container-low);
+  }
+
+  .rp-book-badge {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-full);
+    background: var(--surface-container-high);
+    color: var(--color-primary);
+    font-weight: 700;
+    font-size: 0.8rem;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    font-family: var(--font-sans);
+  }
+
+  .rp-book-badge.complete {
+    background: var(--color-secondary);
+    color: white;
+  }
+
+  .rp-book-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    min-width: 0;
+  }
+
+  .rp-book-name {
+    color: var(--on-surface);
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .rp-book-track {
+    height: 4px;
+    background: var(--surface-container-high);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+  }
+
+  .rp-book-fill {
+    height: 100%;
+    background: var(--color-secondary);
+    border-radius: var(--radius-full);
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .rp-book-pct {
+    font-weight: 700;
+    color: var(--on-surface-variant);
+    font-size: 0.7rem;
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 480px) {
+    .rp-header { flex-direction: column; align-items: flex-start; }
+    .rp-pct { font-size: 2.75rem; }
+  }
+
+</style>

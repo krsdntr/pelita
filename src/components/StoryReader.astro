@@ -1,0 +1,560 @@
+---
+interface Props {
+  book: { id: string; name: string };
+  chapter: number;
+  verses: Array<{ verse: number; text: string; type?: string }>;
+  nextChapter?: { bookId: string, chapter: number };
+  prevChapter?: { bookId: string, chapter: number };
+}
+
+const { book, chapter, verses, nextChapter, prevChapter } = Astro.props;
+---
+
+<story-reader 
+  data-book={book.id}
+  data-book-name={book.name}
+  data-chapter={chapter}
+  data-next-url={nextChapter ? `/read/${nextChapter.bookId}/${nextChapter.chapter}` : ''}
+  data-prev-url={prevChapter ? `/read/${prevChapter.bookId}/${prevChapter.chapter}` : ''}
+>
+  <div class="sanctuary-container">
+    <!-- Clean Top Navigation (Floating) -->
+    <div class="sanctuary-header container">
+      <div class="brand type-title-lg italic">Perpustakaan Suci</div>
+      <div class="nav-links">
+         <a href="/" class="type-label-md nav-text">Rak Buku</a>
+         <span class="type-label-md nav-text active">Bacaan</span>
+         <a href="/sanctuary" class="type-label-md nav-text">Sanctuari</a>
+      </div>
+      <div class="actions">
+        <button class="icon-btn" id="settingsBtn" aria-label="Settings">
+          <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="20" height="20">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 1 1 0-9h.75c.704 0 1.402-.03 2.09-.09m0 9.18c.253.962.584 1.892.985 2.783.247.55.06 1.21-.463 1.511l-.657.38c-.551.318-1.26.117-1.527-.461a20.845 20.845 0 0 1-1.44-4.282m3.102.069a18.03 18.03 0 0 1-.59-4.59c0-1.586.205-3.124.59-4.59m0 9.18a23.848 23.848 0 0 1 8.835 2.535M10.34 6.66a23.847 23.847 0 0 0 8.835-2.535m0 0A23.74 23.74 0 0 0 18.795 3m.38 1.125a23.91 23.91 0 0 1 1.014 5.395m-1.014-5.396c-.194.922-.325 1.871-.38 2.842M19.175 4.125a23.91 23.91 0 0 1-1.014 5.395m0 0A23.848 23.848 0 0 1 10.34 6.66m8.836-2.535A23.848 23.848 0 0 1 10.34 6.66m8.835 2.535a23.847 23.847 0 0 1-8.835 2.535" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Central Story Container -->
+    <div class="story-stage">
+      <div class="swiper story-swiper">
+        <div class="swiper-wrapper" id="storyWrapper">
+          <!-- Cards injected via JS -->
+        </div>
+      </div>
+      
+      <!-- Tap Zones -->
+      <button class="nav-zone nav-left" aria-label="Previous">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24" class="nav-arrow"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+      </button>
+      <button class="nav-zone nav-right" aria-label="Next">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24" class="nav-arrow"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+      </button>
+    </div>
+    
+  </div>
+
+  <!-- Settings Float/Modal -->
+  <div class="settings-drawer" id="settingsDrawer">
+    <div class="drawer-header">
+      <button class="icon-btn" id="closeSettings">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    
+    <div class="drawer-body">
+      <div class="setting-section">
+        <label class="type-label-md">TEMA TAMPILAN</label>
+        <div class="theme-grid">
+          <button class="theme-option" data-theme="light">
+            <div class="theme-preview" style="background: #faf9f8; border: 1px solid #1e1a17;"></div>
+            <span class="type-label-md">TERANG</span>
+          </button>
+          <button class="theme-option" data-theme="dark">
+             <div class="theme-preview" style="background: #1e1a17;"></div>
+             <span class="type-label-md">GELAP</span>
+          </button>
+          <button class="theme-option" data-theme="soft">
+             <div class="theme-preview" style="background: #f5ede8;"></div>
+             <span class="type-label-md">LEMBUT</span>
+          </button>
+          <button class="theme-option" data-theme="zen">
+             <div class="theme-preview" style="background: #fce8e8; border: 1px solid #f5ede8;"></div>
+             <span class="type-label-md">ZEN</span>
+          </button>
+        </div>
+      </div>
+      
+      <div class="setting-section">
+        <div class="range-header">
+           <label class="type-label-md">KERAPATAN TEKS</label>
+           <span class="type-label-md" id="versesVal">3 Ayat</span>
+        </div>
+        <div class="range-slider">
+           <input type="range" id="versesPerCard" min="1" max="10" value="3" />
+        </div>
+      </div>
+      
+      <div class="setting-section mt-auto">
+        <button class="btn-primary type-label-md" id="saveThemeBtn">SIMPAN SANCTUARI</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="application/json" id="versesData">{JSON.stringify(verses)}</script>
+</story-reader>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+
+<style>
+  .sanctuary-container {
+    height: 100vh;
+    height: 100dvh;
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .sanctuary-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2rem 0;
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    z-index: 20;
+    pointer-events: none; /* Let clicks pass through except on children */
+  }
+  
+  .sanctuary-header > * { pointer-events: auto; }
+  
+  .brand { font-style: italic; }
+  
+  .nav-links {
+    display: none;
+    gap: 3rem;
+  }
+  @media (min-width: 768px) {
+    .nav-links { display: flex; }
+  }
+  
+  .nav-text {
+    color: var(--on-surface-variant);
+    text-transform: capitalize;
+    font-size: 0.9rem;
+    letter-spacing: normal;
+    text-decoration: none;
+  }
+  
+  .nav-text.active {
+    color: var(--on-surface);
+    border-bottom: 1px solid var(--on-surface);
+    padding-bottom: 0.25rem;
+  }
+  
+  .icon-btn {
+    background: var(--surface-container-low);
+    border: none;
+    width: 44px; height: 44px;
+    border-radius: var(--radius-md);
+    display: grid; place-items: center;
+    color: var(--on-surface);
+    cursor: pointer;
+    box-shadow: var(--shadow-subtle);
+  }
+
+  .story-stage {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .swiper {
+    width: 100%;
+    height: 100%;
+    max-width: 600px; /* Limit width of reading card for editorial feel */
+  }
+
+  :global(.swiper-slide) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    box-sizing: border-box;
+  }
+  
+  :global(.sanctuary-card) {
+    background-color: var(--surface-container-lowest);
+    border-radius: var(--radius-xl);
+    padding: 4rem 3rem;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-ambient);
+    position: relative;
+    /* Soften scrollbar */
+    scrollbar-width: none; 
+  }
+  :global(.sanctuary-card::-webkit-scrollbar) { display: none; }
+
+  :global(.card-meta) {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    color: var(--on-surface-variant);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  :global(.card-title) {
+    font-family: var(--font-serif);
+    font-size: 2.5rem;
+    color: var(--color-primary);
+    margin-bottom: 3rem;
+    line-height: 1.1;
+  }
+
+  :global(.verse-block) {
+    margin-bottom: 1.5rem;
+    color: var(--on-surface);
+  }
+
+  :global(.verse-block sup) {
+    font-size: 0.65em;
+    color: var(--on-surface-variant);
+    margin-right: 0.5rem;
+    font-family: var(--font-sans);
+  }
+
+  /* Nav Zones (Arrows) */
+  .nav-zone {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    height: 100%;
+    width: 20%;
+    z-index: 10;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    color: var(--on-surface-variant);
+    opacity: 0.5;
+    transition: opacity var(--duration-fast);
+  }
+  .nav-zone:hover { opacity: 1; }
+  .nav-left { left: 0; justify-content: flex-start; padding-left: 5%; }
+  .nav-right { right: 0; justify-content: flex-end; padding-right: 5%; width: 50%; /* Larger tap area on right */ }
+
+  /* Settings Drawer */
+  .settings-drawer {
+    position: fixed;
+    top: 2rem;
+    right: 2rem;
+    width: 100%;
+    max-width: 320px;
+    background: var(--surface);
+    border: 1px solid var(--outline-variant);
+    border-radius: var(--radius-xl);
+    padding: 2rem;
+    z-index: 1000;
+    box-shadow: var(--shadow-ambient);
+    transform: translateX(120%);
+    transition: transform var(--duration-normal) var(--ease-out-expo);
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+  
+  .settings-drawer.active {
+    transform: translateX(0);
+  }
+
+  @media (max-width: 480px) {
+    .settings-drawer {
+      top: 0;
+      right: 0;
+      bottom: 0;
+      max-width: 320px;
+      border-radius: 0;
+      border: none;
+      border-left: 1px solid var(--outline-variant);
+    }
+  }
+  
+  .drawer-header {
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  .setting-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .theme-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  
+  .theme-option {
+    background: transparent;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  
+  .theme-preview {
+    width: 100%;
+    height: 80px;
+    border-radius: var(--radius-md);
+  }
+  
+  .range-header {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .range-slider input {
+    width: 100%;
+    accent-color: var(--color-primary);
+  }
+  
+  .btn-primary {
+    background-color: var(--color-primary);
+    color: var(--on-primary);
+    border: none;
+    width: 100%;
+    padding: 1rem;
+    border-radius: var(--radius-sm);
+    letter-spacing: 0.1em;
+  }
+  
+  .mt-auto { margin-top: auto; }
+</style>
+
+<script>
+  import Swiper from 'swiper';
+  
+  class StoryReader extends HTMLElement {
+    constructor() {
+      super();
+    }
+    
+    connectedCallback() {
+      this.bookId   = this.dataset.book;
+      this.bookName = this.dataset.bookName;
+      this.chapter  = this.dataset.chapter;
+      this.nextUrl = this.dataset.nextUrl;
+      this.prevUrl = this.dataset.prevUrl;
+      this.versesDataElement = this.querySelector('#versesData');
+      
+      if (!this.versesDataElement) return;
+
+      try {
+        this.verses = JSON.parse(this.versesDataElement.textContent);
+      } catch (e) {
+        console.error("Failed to parse verses data", e);
+        return;
+      }
+      
+      this.state = {
+        versesPerCard: parseInt(localStorage.getItem('alkitab_vpc') || '5'),
+        theme: localStorage.getItem('alkitab_theme') || 'light',
+      };
+      
+      this.applyTheme();
+      this.init();
+    }
+    
+    applyTheme() {
+      document.documentElement.setAttribute('data-theme', this.state.theme);
+    }
+    
+    init() {
+      this.renderCards();
+      this.setupControls();
+    }
+    
+    renderCards() {
+      const wrapper = this.querySelector('#storyWrapper');
+      wrapper.innerHTML = '';
+      
+      const chunked = [];
+      let currentChunk = [];
+      
+      for (const verse of this.verses) {
+        if (verse.type === 'heading') {
+           // You could treat headings differently, here we just append
+           currentChunk.push(verse);
+        } else {
+           currentChunk.push(verse);
+           if (currentChunk.length >= this.state.versesPerCard) {
+             chunked.push([...currentChunk]);
+             currentChunk = [];
+           }
+        }
+      }
+      if (currentChunk.length > 0) chunked.push(currentChunk);
+      
+      // Build DOM
+      chunked.forEach((chunk, index) => {
+        const slide = document.createElement('div');
+        slide.className = 'swiper-slide';
+        
+        let htmlStr = `<div class="sanctuary-card">`;
+        
+        // Add Title Header on First Card
+        if (index === 0) {
+           const bookName = document.querySelector('h2') ? document.querySelector('h2').innerText : this.bookId; // fallback
+           htmlStr += `
+             <div class="card-meta">PASAL ${this.chapter}</div>
+             <div class="card-title">${this.capitalize(this.bookId)}</div>
+           `;
+        }
+        
+        chunk.forEach(v => {
+          if (v.type === 'heading') {
+            htmlStr += `<h3 class="type-title-lg" style="margin: 2rem 0 1rem; color: var(--color-primary)">${v.text}</h3>`;
+          } else {
+            htmlStr += `<p class="verse-block type-body-lg"><sup>${v.verse}</sup>${v.text}</p>`;
+          }
+        });
+        
+        htmlStr += `</div>`;
+        slide.innerHTML = htmlStr;
+        wrapper.appendChild(slide);
+      });
+      
+      this.initSwiper();
+    }
+    
+    initSwiper() {
+      if (this.swiper) this.swiper.destroy();
+      this.swiper = new Swiper(this.querySelector('.story-swiper'), {
+        speed: 500,
+        spaceBetween: 20
+      });
+    }
+    
+    setupControls() {
+      this.querySelector('.nav-left').addEventListener('click', () => {
+        if (this.swiper.isBeginning && this.prevUrl) window.location.href = this.prevUrl;
+        else this.swiper.slidePrev();
+      });
+      
+      this.querySelector('.nav-right').addEventListener('click', () => {
+        if (this.swiper.isEnd && this.nextUrl) {
+           this.incrementGlobalSwipe(); // Count chapter finish
+           window.location.href = this.nextUrl;
+        } else {
+           this.incrementGlobalSwipe();
+           this.swiper.slideNext();
+        }
+      });
+      
+      // Drawer
+      const drawer = this.querySelector('#settingsDrawer');
+      this.querySelector('#settingsBtn').addEventListener('click', () => {
+        drawer.classList.add('active');
+        document.body.classList.add('no-scroll');
+      });
+      this.querySelector('#closeSettings').addEventListener('click', () => {
+        drawer.classList.remove('active');
+        document.body.classList.remove('no-scroll');
+      });
+      this.querySelector('#saveThemeBtn').addEventListener('click', () => {
+        drawer.classList.remove('active');
+        document.body.classList.remove('no-scroll');
+      });
+      
+      // Theme Buttons
+      this.querySelectorAll('.theme-option').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          this.state.theme = e.currentTarget.dataset.theme;
+          localStorage.setItem('alkitab_theme', this.state.theme);
+          this.applyTheme();
+        });
+      });
+      
+      // Range Slider
+      const vpcInput = this.querySelector('#versesPerCard');
+      vpcInput.value = this.state.versesPerCard;
+      const valDisplay = this.querySelector('#versesVal');
+      valDisplay.innerText = `${this.state.versesPerCard} Ayat`;
+      
+      vpcInput.addEventListener('change', (e) => {
+        this.state.versesPerCard = e.target.value;
+        localStorage.setItem('alkitab_vpc', this.state.versesPerCard);
+        valDisplay.innerText = `${this.state.versesPerCard} Ayat`;
+        this.renderCards();
+      });
+    }
+    
+    incrementGlobalSwipe() {
+      try {
+        let stats = JSON.parse(localStorage.getItem('alkitab_stats') || '{}');
+
+        // Pastikan semua field ada
+        if (!stats.totalSwipes)   stats.totalSwipes   = 0;
+        if (!stats.bookProgress)  stats.bookProgress  = {};
+        if (!stats.bookReadAt)    stats.bookReadAt    = {};
+        if (!stats.exploredBooks) stats.exploredBooks = [];
+
+        stats.totalSwipes += 1;
+
+        // Progress BINER: kitab hanya "sudah dijelajahi" atau belum
+        stats.bookProgress[this.bookId] = 100;
+
+        // Catat tanggal PERTAMA KALI kitab dibuka (tidak ditimpa)
+        if (!stats.bookReadAt[this.bookId]) {
+          stats.bookReadAt[this.bookId] = new Date().toISOString();
+        }
+
+        // Tambahkan ke daftar kitab yang dijelajahi (tanpa duplikat)
+        if (!stats.exploredBooks.includes(this.bookId)) {
+          stats.exploredBooks.push(this.bookId);
+        }
+
+        // Hitung streak harian dengan perbandingan tanggal
+        const today     = new Date().toDateString();
+        const yesterday = new Date(Date.now() - 86_400_000).toDateString();
+
+        if (stats.lastReadDate === today) {
+          // Sudah baca hari ini — streak tidak berubah
+        } else if (stats.lastReadDate === yesterday) {
+          // Hari berturut-turut — tambah streak
+          stats.streak = (stats.streak || 0) + 1;
+        } else {
+          // Pertama kali atau terputus — mulai dari 1
+          stats.streak = 1;
+        }
+        stats.lastReadDate = today;
+
+        // Simpan info kitab terakhir (untuk banner "Lanjutkan" di Rak Buku)
+        stats.lastRead = {
+          bookId:   this.bookId,
+          bookName: this.bookName || this.bookId,
+        };
+
+        localStorage.setItem('alkitab_stats', JSON.stringify(stats));
+      } catch (e) {
+        console.error('incrementGlobalSwipe error:', e);
+      }
+    }
+    
+    capitalize(str) { return str.charAt(0).toUpperCase() + str.slice(1); }
+  }
+  
+  customElements.define('story-reader', StoryReader);
+</script>

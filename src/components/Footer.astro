@@ -1,0 +1,102 @@
+---
+---
+
+<footer class="sacred-footer">
+  <div class="container footer-content">
+    <div class="disclaimer-section">
+      <p class="disclaimer-text type-body-lg">
+        Rangkuman Alkitab tidak menggantikan kewajiban membaca Alkitab. Rangkuman ini ditujukan sebagai bahan pendamping. Disarankan selalu merujuk ke sumber asli.
+      </p>
+    </div>
+    <div class="divider"></div>
+    <div class="credits-section">
+      <p class="credits-text type-label-md">
+        Dibuat dengan 🤍 <a href="https://instagram.com/krisdntro" target="_blank" rel="noopener noreferrer" class="instagram-link">krisdntro</a>
+      </p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .sacred-footer {
+    background-color: var(--surface-container-low);
+    border-top: 1px solid var(--outline-variant);
+    padding: 4rem 0 3rem 0;
+    margin-top: auto;
+    width: 100%;
+    transition: background-color var(--duration-normal), border-color var(--duration-normal);
+  }
+
+  .footer-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    max-width: 800px;
+  }
+
+  .disclaimer-section {
+    margin-bottom: 2rem;
+    max-width: 600px;
+  }
+
+  .disclaimer-text {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--on-surface-variant);
+    font-style: italic;
+    opacity: 0.85;
+  }
+
+  .divider {
+    width: 40px;
+    height: 1px;
+    background-color: var(--color-secondary);
+    opacity: 0.3;
+    margin-bottom: 2rem;
+  }
+
+  .credits-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .credits-text {
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    color: var(--on-surface-variant);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .instagram-link {
+    font-weight: 700;
+    color: var(--color-primary);
+    position: relative;
+    transition: color var(--duration-fast);
+  }
+
+  .instagram-link:hover {
+    color: var(--color-secondary);
+  }
+
+  .instagram-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background-color: currentColor;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform var(--duration-fast) var(--ease-out-expo);
+  }
+
+  .instagram-link:hover::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+</style>

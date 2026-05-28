@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,300..800;1,300..800&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+                  "on-surface-variant": "#504441",
+                  "on-tertiary-fixed": "#211b0f",
+                  "tertiary-container": "#4e4638",
+                  "on-error": "#ffffff",
+                  "tertiary-fixed": "#eee1ce",
+                  "secondary-container": "#fed7ca",
+                  "inverse-surface": "#2f3130",
+                  "error-container": "#ffdad6",
+                  "primary-fixed": "#ffdbd0",
+                  "on-primary-fixed-variant": "#5d4037",
+                  "surface-container-lowest": "#ffffff",
+                  "on-primary-fixed": "#2c160e",
+                  "surface-container-highest": "#e3e2e1",
+                  "on-secondary-container": "#795c51",
+                  "error": "#ba1a1a",
+                  "surface-container-high": "#e9e8e7",
+                  "primary": "#442a22",
+                  "outline-variant": "#d4c3be",
+                  "tertiary": "#373023",
+                  "primary-fixed-dim": "#e7bdb1",
+                  "primary-container": "#5d4037",
+                  "on-primary-container": "#d4ada1",
+                  "surface-variant": "#e3e2e1",
+                  "surface-dim": "#dadad9",
+                  "outline": "#827470",
+                  "surface-container-low": "#f4f3f2",
+                  "secondary": "#75584d",
+                  "on-tertiary-fixed-variant": "#4e4638",
+                  "inverse-primary": "#e7bdb1",
+                  "on-surface": "#1a1c1c",
+                  "background": "#faf9f8",
+                  "surface-container": "#eeeeed",
+                  "on-primary": "#ffffff",
+                  "on-secondary-fixed-variant": "#5b4137",
+                  "surface-bright": "#faf9f8",
+                  "inverse-on-surface": "#f1f0f0",
+                  "on-secondary-fixed": "#2b160f",
+                  "tertiary-fixed-dim": "#d1c5b3",
+                  "on-secondary": "#ffffff",
+                  "secondary-fixed-dim": "#e4beb2",
+                  "surface": "#faf9f8",
+                  "on-tertiary": "#ffffff",
+                  "on-tertiary-container": "#c0b4a2",
+                  "secondary-fixed": "#ffdbce",
+                  "on-error-container": "#93000a",
+                  "on-background": "#1a1c1c",
+                  "surface-tint": "#77574d"
+          },
+          "borderRadius": {
+                  "DEFAULT": "0.125rem",
+                  "lg": "0.25rem",
+                  "xl": "0.5rem",
+                  "full": "0.75rem"
+          },
+          "fontFamily": {
+                  "headline": ["Newsreader", "serif"],
+                  "body": ["Newsreader", "serif"],
+                  "label": ["Inter", "sans-serif"]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #d4c3be; border-radius: 10px; }
+    .bookshelf-gradient {
+      background: linear-gradient(to right, rgba(68,42,34,0.02) 0%, rgba(68,42,34,0) 10%, rgba(68,42,34,0) 90%, rgba(68,42,34,0.02) 100%);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background font-body selection:bg-secondary-container">
+<!-- Side Navigation -->
+<aside class="h-screen w-72 fixed left-0 top-0 bg-[#faf9f8] dark:bg-[#1c1b1a] flex flex-col gap-8 p-10 z-40 hidden md:flex">
+<div class="flex flex-col gap-1">
+<h1 class="text-xl font-headline text-[#442a22] dark:text-[#d7ccc8]">Sacred Space</h1>
+<p class="font-label uppercase text-[0.75rem] tracking-[0.05em] font-medium text-[#373023]/50 dark:text-[#faf9f8]/50">Continue Reading Genesis 12</p>
+</div>
+<nav class="flex flex-col gap-6 mt-8">
+<a class="flex items-center gap-4 text-[#442a22] dark:text-[#d7ccc8] font-bold hover:translate-x-1 transition-transform duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span>
+<span class="font-label uppercase text-[0.75rem] tracking-[0.05em]">Library</span>
+</a>
+<a class="flex items-center gap-4 text-[#373023]/50 dark:text-[#faf9f8]/50 hover:translate-x-1 transition-transform duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
+<span class="font-label uppercase text-[0.75rem] tracking-[0.05em]">Daily Verse</span>
+</a>
+<a class="flex items-center gap-4 text-[#373023]/50 dark:text-[#faf9f8]/50 hover:translate-x-1 transition-transform duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+<span class="font-label uppercase text-[0.75rem] tracking-[0.05em]">Reading Plans</span>
+</a>
+<a class="flex items-center gap-4 text-[#373023]/50 dark:text-[#faf9f8]/50 hover:translate-x-1 transition-transform duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="edit_note">edit_note</span>
+<span class="font-label uppercase text-[0.75rem] tracking-[0.05em]">Journal</span>
+</a>
+<a class="flex items-center gap-4 text-[#373023]/50 dark:text-[#faf9f8]/50 hover:translate-x-1 transition-transform duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="self_improvement">self_improvement</span>
+<span class="font-label uppercase text-[0.75rem] tracking-[0.05em]">Meditation</span>
+</a>
+</nav>
+<div class="mt-auto pt-10">
+<div class="flex items-center gap-3 p-4 bg-surface-container rounded-xl">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-primary-container flex items-center justify-center text-on-primary-container">
+<span class="material-symbols-outlined">person</span>
+</div>
+<div class="overflow-hidden">
+<p class="font-label text-[0.7rem] font-bold truncate">A. Disciple</p>
+<p class="font-label text-[0.6rem] opacity-60">Level 12 Seeker</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:ml-72 min-h-screen px-6 py-12 md:px-16 md:py-20 max-w-7xl">
+<!-- Header Section -->
+<header class="mb-16">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
+<div>
+<h2 class="text-5xl md:text-6xl font-headline font-bold text-primary tracking-tight mb-4">The Bookshelf</h2>
+<p class="text-lg font-body italic text-tertiary/70 max-w-lg leading-relaxed">
+            "Your word is a lamp for my feet, a light on my path." — Psalm 119:105
+          </p>
+</div>
+<!-- Master Stats Card -->
+<div class="bg-surface-container-low p-6 rounded-xl border-l-4 border-primary flex items-center gap-6 shadow-sm">
+<div class="w-14 h-14 rounded-full bg-primary-fixed flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">swipe</span>
+</div>
+<div>
+<p class="font-label text-[0.65rem] uppercase tracking-widest text-on-surface-variant font-bold mb-1">Lifetime Swipes</p>
+<p class="text-3xl font-headline font-bold text-primary">12,842</p>
+</div>
+</div>
+</div>
+</header>
+<!-- Bookshelf Sections -->
+<div class="space-y-24">
+<!-- Section: Perjanjian Lama -->
+<section>
+<div class="flex items-center justify-between mb-8">
+<div class="flex items-center gap-4">
+<h3 class="text-3xl font-headline font-semibold text-tertiary">Perjanjian Lama</h3>
+<span class="font-label text-[0.7rem] bg-tertiary-fixed px-2 py-1 rounded-full text-on-tertiary-fixed font-bold">8,421 SWIPES</span>
+</div>
+<div class="h-px flex-grow mx-8 bg-outline-variant/30 hidden md:block"></div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+<!-- Book Card: Pentateukh -->
+<div class="group relative bg-surface-container p-8 rounded-xl bookshelf-gradient transition-all duration-500 hover:scale-[1.02] cursor-pointer">
+<div class="absolute top-0 left-0 w-1 h-full bg-primary rounded-l-xl opacity-20 group-hover:opacity-100 transition-opacity"></div>
+<p class="font-label text-[0.65rem] tracking-widest uppercase font-bold text-on-surface-variant/60 mb-6">Pentateukh</p>
+<h4 class="text-2xl font-headline font-bold text-primary mb-2">Kejadian</h4>
+<p class="text-sm font-body italic text-tertiary/60 mb-8 leading-relaxed">The Beginning of all things and the Covenant.</p>
+<div class="mt-auto flex items-center justify-between">
+<span class="font-label text-[0.65rem] font-bold text-primary/70">2,105 SWIPES</span>
+<div class="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-surface transition-colors">
+<span class="material-symbols-outlined text-sm">arrow_forward</span>
+</div>
+</div>
+<div class="absolute bottom-0 left-0 w-full h-1 bg-surface-variant overflow-hidden rounded-b-xl">
+<div class="bg-primary h-full w-[85%]"></div>
+</div>
+</div>
+<!-- Book Card: Sejarah -->
+<div class="group relative bg-surface-container p-8 rounded-xl bookshelf-gradient transition-all duration-500 hover:scale-[1.02] cursor-pointer">
+<div class="absolute top-0 left-0 w-1 h-full bg-primary rounded-l-xl opacity-20 group-hover:opacity-100 transition-opacity"></div>
+<p class="font-label text-[0.65rem] tracking-widest uppercase font-bold text-on-surface-variant/60 mb-6">Sejarah</p>
+<h4 class="text-2xl font-headline font-bold text-primary mb-2">Yosua</h4>
+<p class="text-sm font-body italic text-tertiary/60 mb-8 leading-relaxed">The conquest of the promised land.</p>
+<div class="mt-auto flex items-center justify-between">
+<span class="font-label text-[0.65rem] font-bold text-primary/70">942 SWIPES</span>
+<div class="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-surface transition-colors">
+<span class="material-symbols-outlined text-sm">arrow_forward</span>
+</div>
+</div>
+<div class="absolute bottom-0 left-0 w-full h-1 bg-surface-variant overflow-hidden rounded-b-xl">
+<div class="bg-primary h-full w-[40%]"></div>
+</div>
+</div>
+<!-- Book Card: Puisi -->
+<div class="group relative bg-surface-container p-8 rounded-xl bookshelf-gradient transition-all duration-500 hover:scale-[1.02] cursor-pointer">
+<div class="absolute top-0 left-0 w-1 h-full bg-primary rounded-l-xl opacity-20 group-hover:opacity-100 transition-opacity"></div>
+<p class="font-label text-[0.65rem] tracking-widest uppercase font-bold text-on-surface-variant/60 mb-6">Puisi</p>
+<h4 class="text-2xl font-headline font-bold text-primary mb-2">Mazmur</h4>
+<p class="text-sm font-body italic text-tertiary/60 mb-8 leading-relaxed">Divine poems and songs of the soul.</p>
+<div class="mt-auto flex items-center justify-between">
+<span class="font-label text-[0.65rem] font-bold text-primary/70">4,321 SWIPES</span>
+<div class="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-surface transition-colors">
+<span class="material-symbols-outlined text-sm">arrow_forward</span>
+</div>
+</div>
+<div class="absolute bottom-0 left-0 w-full h-1 bg-surface-variant overflow-hidden rounded-b-xl">
+<div class="bg-primary h-full w-[95%]"></div>
+</div>
+</div>
+<!-- Book Card: Nabi Besar -->
+<div class="group relative bg-surface-container p-8 rounded-xl bookshelf-gradient transition-all duration-500 hover:scale-[1.02] cursor-pointer">
+<div class="absolute top-0 left-0 w-1 h-full bg-primary rounded-l-xl opacity-20 group-hover:opacity-100 transition-opacity"></div>
+<p class="font-label text-[0.65rem] tracking-widest uppercase font-bold text-on-surface-variant/60 mb-6">Nabi Besar</p>
+<h4 class="text-2xl font-headline font-bold text-primary mb-2">Yesaya</h4>
+<p class="text-sm font-body italic text-tertiary/60 mb-8 leading-relaxed">The vision of the suffering servant.</p>
+<div class="mt-auto flex items-center justify-between">
+<span class="font-label text-[0.65rem] font-bold text-primary/70">1,053 SWIPES</span>
+<div class="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-surface transition-colors">
+<span class="material-symbols-outlined text-sm">arrow_forward</span>
+</div>
+</div>
+<div class="absolute bottom-0 left-0 w-full h-1 bg-surface-variant overflow-hidden rounded-b-xl">
+<div class="bg-primary h-full w-[20%]"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Section: Perjanjian Baru -->
+<section>
+<div class="flex items-center justify-between mb-8">
+<div class="flex items-center gap-4">
+<h3 class="text-3xl font-headline font-semibold text-tertiary">Perjanjian Baru</h3>
+<span class="font-label text-[0.7rem] bg-secondary-container px-2 py-1 rounded-full text-on-secondary-container font-bold">3,901 SWIPES</span>
+</div>
+<div class="h-px flex-grow mx-8 bg-outline-variant/30 hidden md:block"></div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+<!-- Book Card: Injil -->
+<div class="group relative bg-surface-container p-8 rounded-xl bookshelf-gradient transition-all duration-500 hover:scale-[1.02] cursor-pointer">
+<div class="absolute top-0 left-0 w-1 h-full bg-secondary rounded-l-xl opacity-20 group-hover:opacity-100 transition-opacity"></div>
+<p class="font-label text-[0.65rem] tracking-widest uppercase font-bold text-on-surface-variant/60 mb-6">Injil</p>
+<h4 class="text-2xl font-headline font-bold text-primary mb-2">Yohanes</h4>
+<p class="text-sm font-body italic text-tertiary/60 mb-8 leading-relaxed">The word became flesh and dwelt among us.</p>
+<div class="mt-auto flex items-center justify-between">
+<span class="font-label text-[0.65rem] font-bold text-primary/70">1,580 SWIPES</span>
+<div class="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-surface transition-colors">
+<span class="material-symbols-outlined text-sm">arrow_forward</span>
+</div>
+</div>
+<div class="absolute bottom-0 left-0 w-full h-1 bg-surface-variant overflow-hidden rounded-b-xl">
+<div class="bg-secondary h-full w-[70%]"></div>
+</div>
+</div>
+<!-- Book Card: Surat -->
+<div class="group relative bg-surface-container p-8 rounded-xl bookshelf-gradient transition-all duration-500 hover:scale-[1.02] cursor-pointer">
+<div class="absolute top-0 left-0 w-1 h-full bg-secondary rounded-l-xl opacity-20 group-hover:opacity-100 transition-opacity"></div>
+<p class="font-label text-[0.65rem] tracking-widest uppercase font-bold text-on-surface-variant/60 mb-6">Surat</p>
+<h4 class="text-2xl font-headline font-bold text-primary mb-2">Roma</h4>
+<p class="text-sm font-body italic text-tertiary/60 mb-8 leading-relaxed">The foundations of faith and grace.</p>
+<div class="mt-auto flex items-center justify-between">
+<span class="font-label text-[0.65rem] font-bold text-primary/70">1,210 SWIPES</span>
+<div class="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-surface transition-colors">
+<span class="material-symbols-outlined text-sm">arrow_forward</span>
+</div>
+</div>
+<div class="absolute bottom-0 left-0 w-full h-1 bg-surface-variant overflow-hidden rounded-b-xl">
+<div class="bg-secondary h-full w-[55%]"></div>
+</div>
+</div>
+<!-- Book Card: Wahyu -->
+<div class="group relative bg-surface-container p-8 rounded-xl bookshelf-gradient transition-all duration-500 hover:scale-[1.02] cursor-pointer">
+<div class="absolute top-0 left-0 w-1 h-full bg-secondary rounded-l-xl opacity-20 group-hover:opacity-100 transition-opacity"></div>
+<p class="font-label text-[0.65rem] tracking-widest uppercase font-bold text-on-surface-variant/60 mb-6">Wahyu</p>
+<h4 class="text-2xl font-headline font-bold text-primary mb-2">Wahyu</h4>
+<p class="text-sm font-body italic text-tertiary/60 mb-8 leading-relaxed">The apocalypse and the new creation.</p>
+<div class="mt-auto flex items-center justify-between">
+<span class="font-label text-[0.65rem] font-bold text-primary/70">611 SWIPES</span>
+<div class="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-surface transition-colors">
+<span class="material-symbols-outlined text-sm">arrow_forward</span>
+</div>
+</div>
+<div class="absolute bottom-0 left-0 w-full h-1 bg-surface-variant overflow-hidden rounded-b-xl">
+<div class="bg-secondary h-full w-[30%]"></div>
+</div>
+</div>
+<!-- Placeholder for Grid -->
+<div class="hidden lg:block border-2 border-dashed border-outline-variant/30 rounded-xl flex items-center justify-center">
+<span class="font-label text-[0.6rem] text-tertiary/40 tracking-widest uppercase">Explore More Books</span>
+</div>
+</div>
+</section>
+<!-- Section: Deuterokanonika -->
+<section class="pb-32">
+<div class="flex items-center justify-between mb-8">
+<div class="flex items-center gap-4">
+<h3 class="text-3xl font-headline font-semibold text-tertiary">Deuterokanonika</h3>
+<span class="font-label text-[0.7rem] bg-tertiary-container/10 px-2 py-1 rounded-full text-tertiary-container font-bold">520 SWIPES</span>
+</div>
+<div class="h-px flex-grow mx-8 bg-outline-variant/30 hidden md:block"></div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+<!-- Book Card: Tobit -->
+<div class="group relative bg-surface-container-low p-8 rounded-xl bookshelf-gradient transition-all duration-500 hover:scale-[1.02] cursor-pointer border border-outline-variant/10">
+<p class="font-label text-[0.65rem] tracking-widest uppercase font-bold text-on-surface-variant/60 mb-6">Sejarah</p>
+<h4 class="text-2xl font-headline font-bold text-primary mb-2">Tobit</h4>
+<p class="text-sm font-body italic text-tertiary/60 mb-8 leading-relaxed">A story of family piety and God's providence.</p>
+<div class="mt-auto flex items-center justify-between">
+<span class="font-label text-[0.65rem] font-bold text-primary/70">320 SWIPES</span>
+<div class="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-surface transition-colors">
+<span class="material-symbols-outlined text-sm">arrow_forward</span>
+</div>
+</div>
+</div>
+<!-- Book Card: Yudit -->
+<div class="group relative bg-surface-container-low p-8 rounded-xl bookshelf-gradient transition-all duration-500 hover:scale-[1.02] cursor-pointer border border-outline-variant/10">
+<p class="font-label text-[0.65rem] tracking-widest uppercase font-bold text-on-surface-variant/60 mb-6">Sejarah</p>
+<h4 class="text-2xl font-headline font-bold text-primary mb-2">Yudit</h4>
+<p class="text-sm font-body italic text-tertiary/60 mb-8 leading-relaxed">The brave deliverance of the people.</p>
+<div class="mt-auto flex items-center justify-between">
+<span class="font-label text-[0.65rem] font-bold text-primary/70">200 SWIPES</span>
+<div class="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-surface transition-colors">
+<span class="material-symbols-outlined text-sm">arrow_forward</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Bottom Navigation (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full bg-[#faf9f8]/90 dark:bg-[#1c1b1a]/90 backdrop-blur-xl z-50 flex justify-around items-center px-6 pb-8 pt-4 shadow-[0px_-10px_30px_rgba(68,42,34,0.05)] rounded-t-[2rem]">
+<div class="flex flex-col items-center justify-center bg-[#442a22] text-[#faf9f8] dark:bg-[#d7ccc8] dark:text-[#442a22] rounded-full p-3 hover:scale-110 transition-transform active:scale-90 duration-200">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#373023]/40 dark:text-[#faf9f8]/40 p-3 hover:scale-110 transition-transform active:scale-90 duration-200">
+<span class="material-symbols-outlined" data-icon="chrome_reader_mode">chrome_reader_mode</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#373023]/40 dark:text-[#faf9f8]/40 p-3 hover:scale-110 transition-transform active:scale-90 duration-200">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#373023]/40 dark:text-[#faf9f8]/40 p-3 hover:scale-110 transition-transform active:scale-90 duration-200">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+</div>
+</nav>
+<!-- Side Decor -->
+<div class="fixed top-0 right-0 w-32 h-screen pointer-events-none opacity-[0.03] overflow-hidden hidden xl:block">
+<div class="absolute inset-0 flex flex-col items-center justify-around font-headline text-8xl text-primary transform rotate-90 whitespace-nowrap">
+<span>PERJANJIAN LAMA</span>
+<span>PERJANJIAN BARU</span>
+<span>DEUTEROKANONIKA</span>
+</div>
+</div>
+</body></html>

@@ -1,0 +1,170 @@
+---
+interface Props {
+  book: {
+    id: string;
+    name: string;
+    category: string;
+    subCategory: string;
+    chapters: number;
+    description?: string;
+  };
+}
+
+const { book } = Astro.props;
+
+// Determine bottom border color based on category
+let borderColor = 'var(--color-primary)';
+if (book.category === 'Perjanjian Baru') borderColor = 'var(--color-secondary)';
+if (book.category === 'Deuterokanonika') borderColor = 'var(--color-tertiary)';
+
+// Default descriptions based on category just to fill in the design
+let defaultDesc = "Teks fundamental keimanan.";
+if (book.subCategory === 'Pentateukh') defaultDesc = "Awal segala sesuatu dan Perjanjian.";
+if (book.subCategory === 'Sejarah') defaultDesc = "Penaklukan tanah perjanjian dan bangsa.";
+if (book.subCategory === 'Puisi') defaultDesc = "Puisi ilahi dan nyanyian jiwa.";
+if (book.subCategory === 'Nabi Besar') defaultDesc = "Penglihatan wahyu kenabian.";
+if (book.subCategory === 'Injil') defaultDesc = "Firman telah menjadi manusia.";
+if (book.subCategory === 'Surat Paulus' || book.subCategory === 'Surat Umum') defaultDesc = "Fondasi iman dan kasih karunia.";
+
+const description = book.description || defaultDesc;
+---
+
+<a href={`/read/${book.id}`} class="book-card" data-book-id={book.id}>
+  <div class="card-inner">
+    <div class="card-header">
+      <span class="type-label-md sub-category">{book.subCategory}</span>
+    </div>
+    
+    <div class="card-body">
+      <h3 class="type-title-lg book-title">{book.name}</h3>
+      <p class="book-desc">{description}</p>
+    </div>
+    
+    <div class="card-footer">
+      <div class="progress-wrap">
+         <span class="type-label-md font-track-label" id={`swipes-${book.id}`}>BELUM DIBACA</span>
+         <div class="progress-track">
+            <div class="progress-fill" id={`prog-${book.id}`} style="width: 0%"></div>
+         </div>
+      </div>
+      <div class="enter-btn">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+        </svg>
+      </div>
+    </div>
+  </div>
+  <div class="book-bottom-accent" style={`background-color: ${borderColor}`}></div>
+</a>
+
+<style>
+  .book-card {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--surface-container-low);
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    color: var(--on-surface);
+    overflow: hidden;
+    height: 100%;
+    min-height: 260px;
+    position: relative;
+    transition: transform var(--duration-normal) var(--ease-out-expo), 
+                box-shadow var(--duration-normal) var(--ease-out-expo),
+                background-color var(--duration-normal) var(--ease-out-expo);
+  }
+  
+  .book-card:hover {
+    transform: translateY(-4px);
+    background-color: var(--surface-container);
+    box-shadow: var(--shadow-ambient);
+  }
+
+  .card-inner {
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    flex: 1;
+  }
+  
+  .sub-category {
+    color: var(--color-primary);
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    opacity: 0.85;
+  }
+  
+  .card-body {
+    margin-top: 1.5rem;
+    flex-grow: 1;
+  }
+  
+  .book-title {
+    margin-bottom: 0.75rem;
+    color: var(--color-primary); /* Use Mahogany explicitly */
+    font-weight: 700;
+  }
+  
+  .book-desc {
+    font-family: var(--font-serif);
+    font-size: 0.95rem;
+    font-style: italic;
+    color: var(--on-surface); /* Use darker Ink color */
+    line-height: 1.5;
+    opacity: 0.9;
+  }
+  
+  .card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: 2rem;
+  }
+
+  .progress-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 65%;
+  }
+
+  .progress-track {
+    height: 2px;
+    width: 100%;
+    background-color: var(--outline-variant);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background-color: var(--color-primary);
+    transition: width 0.5s ease-out;
+  }
+  
+  .enter-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-full);
+    background-color: var(--surface-container-high);
+    display: grid;
+    place-items: center;
+    color: var(--on-surface-variant);
+    transition: background-color var(--duration-fast) var(--ease-out-expo),
+                color var(--duration-fast) var(--ease-out-expo);
+  }
+  
+  .book-card:hover .enter-btn {
+    background-color: var(--on-surface);
+    color: var(--surface);
+  }
+  
+  .book-bottom-accent {
+    height: 4px;
+    width: 100%;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+  }
+</style>

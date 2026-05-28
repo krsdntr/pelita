@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+                  "on-surface-variant": "#504441",
+                  "on-tertiary-fixed": "#211b0f",
+                  "tertiary-container": "#4e4638",
+                  "on-error": "#ffffff",
+                  "tertiary-fixed": "#eee1ce",
+                  "secondary-container": "#fed7ca",
+                  "inverse-surface": "#2f3130",
+                  "error-container": "#ffdad6",
+                  "primary-fixed": "#ffdbd0",
+                  "on-primary-fixed-variant": "#5d4037",
+                  "surface-container-lowest": "#ffffff",
+                  "on-primary-fixed": "#2c160e",
+                  "surface-container-highest": "#e3e2e1",
+                  "on-secondary-container": "#795c51",
+                  "error": "#ba1a1a",
+                  "surface-container-high": "#e9e8e7",
+                  "primary": "#442a22",
+                  "outline-variant": "#d4c3be",
+                  "tertiary": "#373023",
+                  "primary-fixed-dim": "#e7bdb1",
+                  "primary-container": "#5d4037",
+                  "on-primary-container": "#d4ada1",
+                  "surface-variant": "#e3e2e1",
+                  "surface-dim": "#dadad9",
+                  "outline": "#827470",
+                  "surface-container-low": "#f4f3f2",
+                  "secondary": "#75584d",
+                  "on-tertiary-fixed-variant": "#4e4638",
+                  "inverse-primary": "#e7bdb1",
+                  "on-surface": "#1a1c1c",
+                  "background": "#faf9f8",
+                  "surface-container": "#eeeeed",
+                  "on-primary": "#ffffff",
+                  "on-secondary-fixed-variant": "#5b4137",
+                  "surface-bright": "#faf9f8",
+                  "inverse-on-surface": "#f1f0f0",
+                  "on-secondary-fixed": "#2b160f",
+                  "tertiary-fixed-dim": "#d1c5b3",
+                  "on-secondary": "#ffffff",
+                  "secondary-fixed-dim": "#e4beb2",
+                  "surface": "#faf9f8",
+                  "on-tertiary": "#ffffff",
+                  "on-tertiary-container": "#c0b4a2",
+                  "secondary-fixed": "#ffdbce",
+                  "on-error-container": "#93000a",
+                  "on-background": "#1a1c1c",
+                  "surface-tint": "#77574d"
+          },
+          "borderRadius": {
+                  "DEFAULT": "0.125rem",
+                  "lg": "0.25rem",
+                  "xl": "0.5rem",
+                  "full": "0.75rem"
+          },
+          "fontFamily": {
+                  "headline": ["Newsreader", "serif"],
+                  "body": ["Newsreader", "serif"],
+                  "label": ["Inter", "sans-serif"]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-background text-on-background font-body selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- TopNavBar (Fixed) -->
+<header class="w-full top-0 sticky bg-gradient-to-b from-[#faf9f8] to-transparent z-[100]">
+<div class="flex justify-between items-center px-8 py-6 max-w-screen-2xl mx-auto">
+<div class="text-2xl font-serif italic text-[#442a22] dark:text-[#d7ccc8]">The Sacred Library</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-[#373023]/60 dark:text-[#faf9f8]/60 hover:text-[#442a22] transition-colors font-serif italic tracking-tight" href="#">Bookshelf</a>
+<a class="text-[#373023]/60 dark:text-[#faf9f8]/60 hover:text-[#442a22] transition-colors font-serif italic tracking-tight" href="#">Readings</a>
+<a class="text-[#442a22] font-bold border-b-2 border-[#442a22] dark:text-[#d7ccc8] dark:border-[#d7ccc8] pb-1 font-serif italic tracking-tight" href="#">Sanctuary</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="hover:opacity-80 transition-opacity scale-95 active:duration-150 transition-transform">
+<span class="material-symbols-outlined text-[#442a22] dark:text-[#d7ccc8]" data-icon="search">search</span>
+</button>
+<button class="hover:opacity-80 transition-opacity scale-95 active:duration-150 transition-transform">
+<span class="material-symbols-outlined text-[#442a22] dark:text-[#d7ccc8]" data-icon="settings">settings</span>
+</button>
+</div>
+</div>
+</header>
+<!-- SideNavBar (Hidden on mobile) -->
+<aside class="hidden lg:flex h-screen w-72 fixed left-0 top-0 bg-[#faf9f8] dark:bg-[#1c1b1a] flex-col gap-8 p-10 z-50">
+<div class="mb-4">
+<div class="text-xl font-serif text-[#442a22] dark:text-[#d7ccc8]">Sacred Space</div>
+<p class="font-sans uppercase text-[0.75rem] tracking-[0.05em] font-medium text-[#373023]/50">Continue Reading Genesis 12</p>
+</div>
+<nav class="flex flex-col gap-6">
+<a class="flex items-center gap-4 text-[#373023]/50 dark:text-[#faf9f8]/50 hover:translate-x-1 transition-transform duration-300 font-sans uppercase text-[0.75rem] tracking-[0.05em] font-medium" href="#">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span> Library
+      </a>
+<a class="flex items-center gap-4 text-[#373023]/50 dark:text-[#faf9f8]/50 hover:translate-x-1 transition-transform duration-300 font-sans uppercase text-[0.75rem] tracking-[0.05em] font-medium" href="#">
+<span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span> Daily Verse
+      </a>
+<a class="flex items-center gap-4 text-[#373023]/50 dark:text-[#faf9f8]/50 hover:translate-x-1 transition-transform duration-300 font-sans uppercase text-[0.75rem] tracking-[0.05em] font-medium" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span> Reading Plans
+      </a>
+<a class="flex items-center gap-4 text-[#373023]/50 dark:text-[#faf9f8]/50 hover:translate-x-1 transition-transform duration-300 font-sans uppercase text-[0.75rem] tracking-[0.05em] font-medium" href="#">
+<span class="material-symbols-outlined" data-icon="edit_note">edit_note</span> Journal
+      </a>
+<a class="flex items-center gap-4 text-[#442a22] dark:text-[#d7ccc8] font-bold hover:translate-x-1 transition-transform duration-300 font-sans uppercase text-[0.75rem] tracking-[0.05em]" href="#">
+<span class="material-symbols-outlined" data-icon="self_improvement">self_improvement</span> Meditation
+      </a>
+</nav>
+<div class="mt-auto pt-10 border-t-0">
+<div class="w-12 h-12 rounded-full overflow-hidden mb-2">
+<img alt="User profile in sanctuary" data-alt="Portrait of a calm man in a sunlit study room with warm earth tones and books in the background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOiIVljXvHZBVQTjcUUO5rEyXW_sokhcF7I5dZCIL0-V7Ie2L_XYrjQSZ02vv91ceURJjTF903usXAfDFUjsQWFhzphvc9fadZYnRkDrd459Ie7itWvnC8aDHYW9rLUvR7w4EG5uzJwaBlPfPxqvpKUfK8PNcDYEW6YbKInqVt0mwgwQ5HAJJdAIhLhdZJ6YQrUO6dq2y8cjVYwZoLposBTEzRVXBgnmlWUv5zK3kCwLtWQjEXXlXTIZXZRuPx7eRW3_28ndTd7g"/>
+</div>
+<p class="font-serif italic text-primary">Elias Thorne</p>
+</div>
+</aside>
+<!-- Main Canvas -->
+<main class="lg:ml-72 px-6 md:px-12 py-10 pb-32 max-w-7xl mx-auto">
+<!-- Hero Section: Daily Streak -->
+<section class="mb-16">
+<div class="flex flex-col md:flex-row items-end justify-between gap-8 mb-12">
+<div class="max-w-2xl">
+<h1 class="text-[3.5rem] font-headline -tracking-[0.02em] leading-tight mb-4">Journey to Wisdom</h1>
+<p class="text-body-lg text-on-surface-variant max-w-lg leading-[1.6]">Your spiritual journey is a marathon, not a sprint. Every verse read is a step closer to deep understanding.</p>
+</div>
+<div class="flex flex-col items-center p-8 bg-surface-container-low rounded-xl relative overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none"></div>
+<span class="font-label text-[0.75rem] uppercase tracking-[0.05em] font-medium text-secondary mb-2">Current Streak</span>
+<div class="text-[4rem] font-headline text-primary leading-none">127</div>
+<span class="font-label text-[0.75rem] uppercase tracking-widest font-bold text-on-surface-variant">Consecutive Days</span>
+</div>
+</div>
+<!-- Segmented Streak Bar -->
+<div class="flex gap-2 w-full h-2 mb-4">
+<div class="flex-1 bg-primary rounded-full"></div>
+<div class="flex-1 bg-primary rounded-full"></div>
+<div class="flex-1 bg-primary rounded-full"></div>
+<div class="flex-1 bg-primary rounded-full"></div>
+<div class="flex-1 bg-primary rounded-full"></div>
+<div class="flex-1 bg-primary-fixed-dim rounded-full"></div>
+<div class="flex-1 bg-surface-variant rounded-full"></div>
+</div>
+<div class="flex justify-between text-[0.7rem] font-label uppercase tracking-widest text-on-surface-variant/60">
+<span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+</div>
+</section>
+<!-- Bento Grid Dashboard -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-8 mb-16">
+<!-- Total Swipes/Engagement (Large Card) -->
+<div class="md:col-span-8 bg-surface-container-lowest p-10 rounded-xl flex flex-col justify-between min-h-[400px]">
+<div>
+<h2 class="text-Title-LG font-headline mb-8">Reading Engagement</h2>
+<div class="flex items-baseline gap-4 mb-2">
+<span class="text-5xl font-headline text-primary">12,482</span>
+<span class="font-label text-xs text-secondary-fixed-dim bg-secondary p-1 px-2 rounded-full">+12% this week</span>
+</div>
+<p class="text-on-surface-variant font-label text-sm uppercase tracking-wider">Total Sacred Verses Explored</p>
+</div>
+<!-- Custom Visual Chart (CSS only) -->
+<div class="mt-12 h-48 flex items-end gap-3">
+<div class="flex-1 bg-surface-container-high hover:bg-primary/20 transition-colors rounded-t-lg h-[40%]"></div>
+<div class="flex-1 bg-surface-container-high hover:bg-primary/20 transition-colors rounded-t-lg h-[60%]"></div>
+<div class="flex-1 bg-surface-container-high hover:bg-primary/20 transition-colors rounded-t-lg h-[45%]"></div>
+<div class="flex-1 bg-surface-container-high hover:bg-primary/20 transition-colors rounded-t-lg h-[85%]"></div>
+<div class="flex-1 bg-primary rounded-t-lg h-[100%] shadow-[0px_10px_20px_rgba(68,42,34,0.15)]"></div>
+<div class="flex-1 bg-surface-container-high hover:bg-primary/20 transition-colors rounded-t-lg h-[55%]"></div>
+<div class="flex-1 bg-surface-container-high hover:bg-primary/20 transition-colors rounded-t-lg h-[70%]"></div>
+<div class="flex-1 bg-surface-container-high hover:bg-primary/20 transition-colors rounded-t-lg h-[30%]"></div>
+<div class="flex-1 bg-surface-container-high hover:bg-primary/20 transition-colors rounded-t-lg h-[50%]"></div>
+</div>
+</div>
+<!-- Most Read Books (Side Card) -->
+<div class="md:col-span-4 bg-surface-container p-10 rounded-xl">
+<h2 class="text-Title-LG font-headline mb-8">Sacred Affinity</h2>
+<div class="space-y-8">
+<div class="flex items-center gap-4">
+<div class="w-12 h-16 bg-primary-container/20 rounded flex items-center justify-center text-primary italic font-serif">Ps</div>
+<div class="flex-1">
+<div class="flex justify-between font-label text-xs mb-1">
+<span class="font-bold">Psalms</span>
+<span>82% Read</span>
+</div>
+<div class="w-full bg-surface-variant h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[82%]"></div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-12 h-16 bg-primary-container/20 rounded flex items-center justify-center text-primary italic font-serif">Jn</div>
+<div class="flex-1">
+<div class="flex justify-between font-label text-xs mb-1">
+<span class="font-bold">John</span>
+<span>65% Read</span>
+</div>
+<div class="w-full bg-surface-variant h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[65%]"></div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-12 h-16 bg-primary-container/20 rounded flex items-center justify-center text-primary italic font-serif">Gn</div>
+<div class="flex-1">
+<div class="flex justify-between font-label text-xs mb-1">
+<span class="font-bold">Genesis</span>
+<span>40% Read</span>
+</div>
+<div class="w-full bg-surface-variant h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[40%]"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Reading Progress across Categories (Full Width Grid Section) -->
+<div class="md:col-span-12 grid grid-cols-1 sm:grid-cols-3 gap-8 mt-4">
+<div class="bg-surface-container-low p-8 rounded-xl flex flex-col items-center text-center">
+<h3 class="font-label text-[0.7rem] uppercase tracking-widest mb-6">Old Testament</h3>
+<div class="relative w-32 h-32 flex items-center justify-center mb-6">
+<svg class="w-full h-full -rotate-90">
+<circle class="text-surface-variant" cx="64" cy="64" fill="transparent" r="58" stroke="currentColor" stroke-width="6"></circle>
+<circle class="text-primary" cx="64" cy="64" fill="transparent" r="58" stroke="currentColor" stroke-dasharray="364.4" stroke-dashoffset="200" stroke-width="6"></circle>
+</svg>
+<span class="absolute text-xl font-headline italic">45%</span>
+</div>
+<p class="text-xs font-label text-on-surface-variant uppercase tracking-tight">412 of 929 Chapters</p>
+</div>
+<div class="bg-surface-container-low p-8 rounded-xl flex flex-col items-center text-center">
+<h3 class="font-label text-[0.7rem] uppercase tracking-widest mb-6">New Testament</h3>
+<div class="relative w-32 h-32 flex items-center justify-center mb-6">
+<svg class="w-full h-full -rotate-90">
+<circle class="text-surface-variant" cx="64" cy="64" fill="transparent" r="58" stroke="currentColor" stroke-width="6"></circle>
+<circle class="text-primary" cx="64" cy="64" fill="transparent" r="58" stroke="currentColor" stroke-dasharray="364.4" stroke-dashoffset="80" stroke-width="6"></circle>
+</svg>
+<span class="absolute text-xl font-headline italic">78%</span>
+</div>
+<p class="text-xs font-label text-on-surface-variant uppercase tracking-tight">202 of 260 Chapters</p>
+</div>
+<div class="bg-surface-container-low p-8 rounded-xl flex flex-col items-center text-center">
+<h3 class="font-label text-[0.7rem] uppercase tracking-widest mb-6">Deuterocanon</h3>
+<div class="relative w-32 h-32 flex items-center justify-center mb-6">
+<svg class="w-full h-full -rotate-90">
+<circle class="text-surface-variant" cx="64" cy="64" fill="transparent" r="58" stroke="currentColor" stroke-width="6"></circle>
+<circle class="text-primary" cx="64" cy="64" fill="transparent" r="58" stroke="currentColor" stroke-dasharray="364.4" stroke-dashoffset="310" stroke-width="6"></circle>
+</svg>
+<span class="absolute text-xl font-headline italic">15%</span>
+</div>
+<p class="text-xs font-label text-on-surface-variant uppercase tracking-tight">28 of 185 Chapters</p>
+</div>
+</div>
+</div>
+<!-- Gamification: Achievements -->
+<section>
+<div class="flex justify-between items-baseline mb-12">
+<h2 class="text-4xl font-headline italic">Soul Milestones</h2>
+<a class="font-label text-[0.7rem] uppercase tracking-widest font-bold text-primary border-b border-primary/20 pb-1" href="#">View All Medals</a>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+<!-- Milestone 1 -->
+<div class="group flex flex-col items-center text-center p-6 bg-surface-container-lowest rounded-xl hover:shadow-[0px_20px_40px_rgba(68,42,34,0.06)] transition-all duration-500 cursor-default">
+<div class="w-20 h-20 bg-tertiary-fixed-dim rounded-[30%_70%_70%_30%_/_30%_30%_70%_70%] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
+<span class="material-symbols-outlined text-tertiary text-3xl" data-icon="auto_stories">auto_stories</span>
+</div>
+<h4 class="font-headline text-lg italic mb-2 leading-tight">Prophet Reader</h4>
+<p class="text-[0.65rem] font-label uppercase tracking-widest text-on-surface-variant/60">Finished Isaiah &amp; Jeremiah</p>
+</div>
+<!-- Milestone 2 -->
+<div class="group flex flex-col items-center text-center p-6 bg-surface-container-lowest rounded-xl hover:shadow-[0px_20px_40px_rgba(68,42,34,0.06)] transition-all duration-500 cursor-default">
+<div class="w-20 h-20 bg-primary-fixed rounded-[70%_30%_30%_70%_/_70%_70%_30%_30%] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="history_edu" style="font-variation-settings: 'FILL' 1;">history_edu</span>
+</div>
+<h4 class="font-headline text-lg italic mb-2 leading-tight">Gospel Finisher</h4>
+<p class="text-[0.65rem] font-label uppercase tracking-widest text-on-surface-variant/60">All 4 Gospels Completed</p>
+</div>
+<!-- Milestone 3 -->
+<div class="group flex flex-col items-center text-center p-6 bg-surface-container-lowest rounded-xl hover:shadow-[0px_20px_40px_rgba(68,42,34,0.06)] transition-all duration-500 cursor-default">
+<div class="w-20 h-20 bg-secondary-container rounded-[50%] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
+<span class="material-symbols-outlined text-secondary text-3xl" data-icon="temp_preferences_custom">temp_preferences_custom</span>
+</div>
+<h4 class="font-headline text-lg italic mb-2 leading-tight">Faithful Steward</h4>
+<p class="text-[0.65rem] font-label uppercase tracking-widest text-on-surface-variant/60">30 Day Continuous Streak</p>
+</div>
+<!-- Milestone 4 (Incomplete) -->
+<div class="group flex flex-col items-center text-center p-6 bg-surface-container opacity-40 grayscale rounded-xl transition-all duration-500 cursor-default">
+<div class="w-20 h-20 bg-surface-variant rounded-[40%_60%_60%_40%_/_60%_40%_40%_60%] flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-on-surface-variant text-3xl" data-icon="temple_buddhist">temple_buddhist</span>
+</div>
+<h4 class="font-headline text-lg italic mb-2 leading-tight">Temple Scribe</h4>
+<p class="text-[0.65rem] font-label uppercase tracking-widest">100 Journal Entries</p>
+</div>
+<!-- Milestone 5 (Incomplete) -->
+<div class="group flex flex-col items-center text-center p-6 bg-surface-container opacity-40 grayscale rounded-xl transition-all duration-500 cursor-default">
+<div class="w-20 h-20 bg-surface-variant rounded-[60%_40%_40%_60%_/_40%_60%_60%_40%] flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-on-surface-variant text-3xl" data-icon="landscape">landscape</span>
+</div>
+<h4 class="font-headline text-lg italic mb-2 leading-tight">Sinai Climber</h4>
+<p class="text-[0.65rem] font-label uppercase tracking-widest">Exodus fully explored</p>
+</div>
+<!-- Milestone 6 (Incomplete) -->
+<div class="group flex flex-col items-center text-center p-6 bg-surface-container opacity-40 grayscale rounded-xl transition-all duration-500 cursor-default">
+<div class="w-20 h-20 bg-surface-variant rounded-full flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-on-surface-variant text-3xl" data-icon="all_inclusive">all_inclusive</span>
+</div>
+<h4 class="font-headline text-lg italic mb-2 leading-tight">Alpha &amp; Omega</h4>
+<p class="text-[0.65rem] font-label uppercase tracking-widest">Entire Library Read</p>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar (Visible on Mobile Only) -->
+<footer class="fixed bottom-0 w-full z-50 rounded-t-[2rem] bg-[#faf9f8]/90 dark:bg-[#1c1b1a]/90 backdrop-blur-xl md:hidden shadow-[0px_-10px_30px_rgba(68,42,34,0.05)]">
+<div class="flex justify-around items-center px-6 pb-8 pt-4">
+<div class="flex flex-col items-center justify-center text-[#373023]/40 dark:text-[#faf9f8]/40 p-3 hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-sans text-[0.7rem] uppercase tracking-widest font-bold">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#373023]/40 dark:text-[#faf9f8]/40 p-3 hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-icon="chrome_reader_mode">chrome_reader_mode</span>
+<span class="font-sans text-[0.7rem] uppercase tracking-widest font-bold">Reader</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#373023]/40 dark:text-[#faf9f8]/40 p-3 hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+<span class="font-sans text-[0.7rem] uppercase tracking-widest font-bold">Search</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-[#442a22] text-[#faf9f8] dark:bg-[#d7ccc8] dark:text-[#442a22] rounded-full p-3 active:scale-90 duration-200 transition-all">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-sans text-[0.7rem] uppercase tracking-widest font-bold">Profile</span>
+</div>
+</div>
+</footer>
+</body></html>
