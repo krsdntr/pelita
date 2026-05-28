@@ -4,44 +4,12 @@ import StatsHeader from '../../../components/StatsHeader.astro';
 import Footer from '../../../components/Footer.astro';
 import books from '../../../data/bible-metadata.json';
 
-import fs from 'node:fs';
-import path from 'node:path';
-
 export async function getStaticPaths() {
   const paths = [];
   
-  // We read the files directly from the filesystem during the build.
-  // This avoids Vite/Esbuild inlining 30MB of strings into the AST,
-  // which was causing the Esbuild tokenizer to crash with 'Unexpected "oup"'.
-  const projectRoot = process.cwd();
-  
   books.forEach((book, bookIdx) => {
-    let bookData = null;
-    try {
-      const filePath = path.join(projectRoot, 'src', 'data', 'books', `${book.id}.json`);
-      const rawString = fs.readFileSync(filePath, 'utf-8');
-      if (rawString) {
-        bookData = JSON.parse(rawString);
-      }
-    } catch (e) { console.error(`Error loading JSON for book ${book.id}:`, e); }
-    
-    const chapterVerseCounts = {};
-    if (bookData) {
-      bookData.forEach(c => {
-        let maxV = 0;
-        if (c.verses) {
-          c.verses.forEach(v => {
-            const vNum = parseInt(v.verse) || 0;
-            if (vNum > maxV) maxV = vNum;
-          });
-        }
-        chapterVerseCounts[c.chapter] = maxV;
-      });
-    }
-
     const chapters = book.chapters;
     for (let i = 1; i <= chapters; i++) {
-      
       let nextChapter = null;
       if (i < chapters) {
         nextChapter = { bookId: book.id, chapter: i + 1 };
@@ -56,26 +24,13 @@ export async function getStaticPaths() {
         prevChapter = { bookId: books[bookIdx - 1].id, chapter: books[bookIdx - 1].chapters };
       }
 
-      let verses = [];
-      if (bookData) {
-        const chapterData = bookData.find(c => String(c.chapter) === String(i));
-        if (chapterData && chapterData.verses) verses = chapterData.verses;
-      }
-
-      if (verses.length === 0) {
-        verses = [{ verse: 1, text: "Teks sedang diunduh atau tidak tersedia untuk saat ini." }];
-      }
-
       paths.push({
         params: { book: book.id, chapter: String(i) },
         props: { 
           book, 
           chapter: i, 
           nextChapter, 
-          prevChapter,
-          verses,
-          lastVerse: chapterVerseCounts[i] || 0,
-          chapterVerseCounts
+          prevChapter
         }
       });
     }
@@ -83,9 +38,47 @@ export async function getStaticPaths() {
   return paths;
 }
 
-const { book, chapter, nextChapter, prevChapter, verses, lastVerse, chapterVerseCounts } = Astro.props;
+const { book, chapter, nextChapter, prevChapter } = Astro.props;
 
 import allBooks from '../../../data/bible-metadata.json';
+
+// Dynamically load only the current book's JSON
+const jsonModules = import.meta.glob('../../../data/books/*.json');
+const modulePath = `../../../data/books/${book.id}.json`;
+
+let verses = [];
+const chapterVerseCounts = {};
+let lastVerse = 0;
+
+if (jsonModules[modulePath]) {
+  try {
+    const mod = await jsonModules[modulePath]();
+    const bookData = mod.default || mod;
+    
+    if (Array.isArray(bookData)) {
+      bookData.forEach(c => {
+        let maxV = 0;
+        if (c.verses) {
+          c.verses.forEach(v => {
+            const vNum = parseInt(v.verse) || 0;
+            if (vNum > maxV) maxV = vNum;
+          });
+        }
+        chapterVerseCounts[c.chapter] = maxV;
+      });
+      
+      const chapterData = bookData.find(c => String(c.chapter) === String(chapter));
+      if (chapterData && chapterData.verses) verses = chapterData.verses;
+      lastVerse = chapterVerseCounts[chapter] || 0;
+    }
+  } catch (e) {
+    console.error(`Failed to load ${book.id}.json`, e);
+  }
+}
+
+if (verses.length === 0) {
+  verses = [{ verse: 1, text: "Teks sedang diunduh atau tidak tersedia untuk saat ini." }];
+}
 
 // Group verses into paragraphs (artificial breaks for readability)
 const verseBlocks = [];
