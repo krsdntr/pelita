@@ -19,7 +19,8 @@
         <p class="type-label-md">Compendium Companion &amp; Bible AI</p>
       </div>
       <div style="display: flex; gap: 0.25rem; align-items: center;">
-        <button id="coco-max-btn" aria-label="Perbesar COCO" title="Perbesar tampilan">
+        <!-- Maximize button: hidden on mobile (already fullscreen) -->
+        <button id="coco-max-btn" aria-label="Perbesar COCO" title="Perbesar tampilan" class="desktop-only-btn">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
         </button>
         <button id="coco-close-btn" aria-label="Tutup COCO">
@@ -30,9 +31,9 @@
     
     <div id="coco-chat-history" class="coco-body">
       <!-- Chat messages will be injected here -->
-      <div class="chat-message assistant" style="align-self: flex-start; display: flex; flex-direction: column; align-items: flex-start;">
-        <div class="message-bubble" style="padding: 1rem 1.25rem; max-width: 85%; border-radius: 0px 0.5rem 0.5rem; background: var(--surface-container-high); color: var(--on-surface);">
-          <div class="type-body-md markdown-chat-content" style="line-height: 1.5; margin: 0px;">Halo! Saya COCO. Anda bisa bertanya apa saja seputar Alkitab atau ajaran Katolik. Ada yang bisa saya bantu hari ini?</div>
+      <div class="chat-message assistant">
+        <div class="message-bubble assistant-bubble">
+          <div class="type-body-md markdown-chat-content">Halo! Saya COCO. Anda bisa bertanya apa saja seputar Alkitab atau ajaran Katolik. Ada yang bisa saya bantu hari ini?</div>
         </div>
       </div>
     </div>
@@ -104,28 +105,38 @@
   let currentRemaining = checkDailyLimit();
   updateDailyLimit(currentRemaining);
 
+  const openChat = () => {
+    modal.classList.remove('hidden');
+    fab.classList.add('hidden');
+    // Lock background scroll
+    document.body.style.overflow = 'hidden';
+    if (!isDataLoaded) loadData();
+    else chatInput.focus();
+  };
+
+  const closeChat = () => {
+    modal.classList.remove('maximized');
+    modal.classList.add('hidden');
+    fab.classList.remove('hidden');
+    // Restore background scroll
+    document.body.style.overflow = '';
+    isMaximized = false;
+    if (maxBtn) {
+      maxBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>';
+    }
+  };
+
   const appendMessage = (text, sender) => {
     const msgDiv = document.createElement('div');
     msgDiv.className = `chat-message ${sender}`;
     
-    const isUser = sender === 'user';
-    msgDiv.style.alignSelf = isUser ? 'flex-end' : 'flex-start';
-    msgDiv.style.display = 'flex';
-    msgDiv.style.flexDirection = 'column';
-    msgDiv.style.alignItems = isUser ? 'flex-end' : 'flex-start';
-    
     const bubble = document.createElement('div');
-    bubble.className = 'message-bubble';
-    bubble.style.padding = '1rem 1.25rem';
-    bubble.style.maxWidth = '85%';
-    bubble.style.borderRadius = isUser ? 'var(--radius-md) var(--radius-md) 0 var(--radius-md)' : '0 var(--radius-md) var(--radius-md) var(--radius-md)';
-    bubble.style.background = isUser ? 'var(--color-primary)' : 'var(--surface-container-high)';
-    bubble.style.color = isUser ? 'white' : 'var(--on-surface)';
+    bubble.className = `message-bubble ${sender === 'user' ? 'user-bubble' : 'assistant-bubble'}`;
     
     // @ts-ignore
     let formattedText = typeof marked !== 'undefined' ? marked.parse(text) : text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>');
     
-    bubble.innerHTML = `<div class="type-body-md markdown-chat-content" style="line-height: 1.5; margin: 0;">${formattedText}</div>`;
+    bubble.innerHTML = `<div class="type-body-md markdown-chat-content">${formattedText}</div>`;
     msgDiv.appendChild(bubble);
     chatHistory.appendChild(msgDiv);
     
@@ -133,7 +144,7 @@
       chatHistory.scrollTop = chatHistory.scrollHeight;
     }, 50);
     
-    return msgDiv; // Return to allow removal if it's a loading bubble
+    return msgDiv;
   };
 
   let chatMemory = [];
@@ -221,24 +232,18 @@
       const resComp = await fetch('/data/catechism-compendium.json');
       compendiumData = await resComp.json();
 
-      loadingText.textContent = "Menyiapkan Indeks Alkitab...";
-      
-      isDataLoaded = true; // Prevent retry loop
-      
-      // Sembunyikan state loading agar user tidak melihat putaran tanpa henti
+      isDataLoaded = true;
       loadingState.classList.add('hidden');
+      chatInput.focus();
       
+      // Fetch Bible index silently in background
       fetch('/data/search-index.json')
         .then(res => {
             if (!res.ok) throw new Error("HTTP error " + res.status);
             return res.json();
         })
-        .then(data => {
-            bibleData = data;
-        })
-        .catch(err => {
-            console.warn("Gagal memuat indeks Alkitab:", err);
-        });
+        .then(data => { bibleData = data; })
+        .catch(err => { console.warn("Gagal memuat indeks Alkitab:", err); });
         
     } catch (e) {
       console.error("Gagal memuat kompendium:", e);
@@ -246,7 +251,6 @@
       isDataLoaded = true;
     } finally {
       isFetchingData = false;
-      if (!chatInput.disabled) chatInput.focus();
     }
   };
 
@@ -262,7 +266,6 @@
     const loadingBubble = appendMessage("Berpikir...", 'assistant');
 
     try {
-      // Async yield for RAG logic so UI updates
       await new Promise(r => setTimeout(r, 10));
       
       const compContext = searchCatechismContext(text);
@@ -308,30 +311,24 @@ ${compContext}
   };
 
   // Event Listeners
-  fab.addEventListener('click', () => {
-    modal.classList.remove('hidden');
-    fab.classList.add('hidden');
-    if (!isDataLoaded) loadData();
-    else chatInput.focus();
-  });
+  fab.addEventListener('click', openChat);
+  closeBtn.addEventListener('click', closeChat);
 
-  closeBtn.addEventListener('click', () => {
-    modal.classList.add('hidden');
-    fab.classList.remove('hidden');
-  });
-
+  // Maximize (desktop only)
   let isMaximized = false;
-  maxBtn.addEventListener('click', () => {
-    isMaximized = !isMaximized;
-    if (isMaximized) {
-      modal.classList.add('maximized');
-      maxBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>';
-    } else {
-      modal.classList.remove('maximized');
-      maxBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>';
-    }
-    chatInput.focus();
-  });
+  if (maxBtn) {
+    maxBtn.addEventListener('click', () => {
+      isMaximized = !isMaximized;
+      if (isMaximized) {
+        modal.classList.add('maximized');
+        maxBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>';
+      } else {
+        modal.classList.remove('maximized');
+        maxBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>';
+      }
+      chatInput.focus();
+    });
+  }
 
   chatSendBtn.addEventListener('click', handleSendMessage);
   chatInput.addEventListener('keypress', (e) => {
@@ -411,6 +408,9 @@ ${compContext}
     display: flex;
     justify-content: space-between;
     align-items: center;
+    /* Ensure header is above safe-area on iOS */
+    padding-top: max(1.25rem, env(safe-area-inset-top));
+    flex-shrink: 0;
   }
   .coco-title-area h3 {
     margin: 0;
@@ -432,6 +432,8 @@ ${compContext}
     display: flex;
     align-items: center;
     justify-content: center;
+    min-width: 40px;
+    min-height: 40px;
   }
   #coco-close-btn:hover, #coco-max-btn:hover {
     opacity: 1;
@@ -441,11 +443,74 @@ ${compContext}
   .coco-body {
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
     background: var(--surface-container-lowest);
+    /* Ensure it doesn't overflow the modal width */
+    min-width: 0;
+  }
+
+  /* Chat messages */
+  .chat-message {
+    display: flex;
+    flex-direction: column;
+    max-width: 100%;
+  }
+  .chat-message.user {
+    align-items: flex-end;
+    align-self: flex-end;
+  }
+  .chat-message.assistant {
+    align-items: flex-start;
+    align-self: flex-start;
+  }
+
+  .message-bubble {
+    padding: 0.875rem 1.25rem;
+    max-width: 85%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    /* Prevent content from breaking out of bubble */
+    min-width: 0;
+  }
+  .user-bubble {
+    border-radius: var(--radius-md) var(--radius-md) 0 var(--radius-md);
+    background: var(--color-primary);
+    color: white;
+  }
+  .assistant-bubble {
+    border-radius: 0 var(--radius-md) var(--radius-md) var(--radius-md);
+    background: var(--surface-container-high);
+    color: var(--on-surface);
+  }
+
+  /* Markdown content fix: prevent numbered lists from overflowing */
+  :global(.markdown-chat-content) {
+    line-height: 1.6;
+    margin: 0;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    min-width: 0;
+  }
+  :global(.markdown-chat-content ol),
+  :global(.markdown-chat-content ul) {
+    padding-left: 1.5rem;
+    margin: 0.5rem 0;
+  }
+  :global(.markdown-chat-content li) {
+    margin-bottom: 0.25rem;
+  }
+  :global(.markdown-chat-content p) {
+    margin: 0 0 0.5rem 0;
+  }
+  :global(.markdown-chat-content p:last-child) {
+    margin-bottom: 0;
+  }
+  :global(.markdown-chat-content strong) {
+    font-weight: 700;
   }
 
   #coco-loading-state {
@@ -457,6 +522,7 @@ ${compContext}
     background: var(--surface-container-low);
     color: var(--on-surface-variant);
     font-size: 0.875rem;
+    flex-shrink: 0;
   }
   .spinner {
     width: 20px;
@@ -465,6 +531,7 @@ ${compContext}
     border-top-color: var(--color-primary);
     border-radius: 50%;
     animation: spin 1s linear infinite;
+    flex-shrink: 0;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -472,6 +539,9 @@ ${compContext}
     padding: 1rem;
     background: var(--surface);
     border-top: 1px solid var(--outline-variant);
+    flex-shrink: 0;
+    /* Reserve space for browser nav bar on mobile */
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }
   .coco-input-wrapper {
     display: flex;
@@ -487,6 +557,8 @@ ${compContext}
     color: var(--on-surface);
     outline: none;
     transition: border-color 0.2s;
+    min-width: 0;
+    font-size: 1rem; /* Prevent iOS auto-zoom on focus */
   }
   #coco-chat-input:focus {
     border-color: var(--color-primary);
@@ -503,6 +575,7 @@ ${compContext}
     align-items: center;
     justify-content: center;
     transition: background 0.2s;
+    flex-shrink: 0;
   }
   #coco-send-btn:hover {
     background: var(--color-secondary);
@@ -516,15 +589,21 @@ ${compContext}
     text-align: center;
   }
 
-  @media (max-width: 480px) {
+  /* On mobile: fullscreen by default, hide maximize button */
+  @media (max-width: 640px) {
     #coco-chat-modal {
       bottom: 0;
       right: 0;
-      width: 100vw;
-      max-width: 100vw;
-      height: 100vh;
-      max-height: 100vh;
+      left: 0;
+      width: 100%;
+      max-width: 100%;
+      height: 100%;
+      max-height: 100%;
       border-radius: 0;
+      border: none;
+    }
+    .desktop-only-btn {
+      display: none;
     }
   }
 </style>
