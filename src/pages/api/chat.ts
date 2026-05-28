@@ -1,7 +1,9 @@
+import { env } from "cloudflare:workers";
+
 export const prerender = false;
 
 export async function POST({ request }) {
-  const apiKey = import.meta.env.GROQ_API_KEY;
+  const apiKey = env.GROQ_API_KEY;
   
   if (!apiKey) {
     return new Response(JSON.stringify({ error: "API Key not configured on the server." }), {
