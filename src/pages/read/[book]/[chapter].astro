@@ -4,19 +4,26 @@ import StatsHeader from '../../../components/StatsHeader.astro';
 import Footer from '../../../components/Footer.astro';
 import books from '../../../data/bible-metadata.json';
 
+import fs from 'node:fs';
+import path from 'node:path';
+
 export async function getStaticPaths() {
-  // Load ALL book JSON files as raw strings at build time!
-  const rawFiles = import.meta.glob('../../../data/books/*.json', { query: '?raw', import: 'default', eager: true });
-  
   const paths = [];
+  
+  // We read the files directly from the filesystem during the build.
+  // This avoids Vite/Esbuild inlining 30MB of strings into the AST,
+  // which was causing the Esbuild tokenizer to crash with 'Unexpected "oup"'.
+  const projectRoot = process.cwd();
+  
   books.forEach((book, bookIdx) => {
     let bookData = null;
     try {
-      const rawString = rawFiles[`../../../data/books/${book.id}.json`];
+      const filePath = path.join(projectRoot, 'src', 'data', 'books', `${book.id}.json`);
+      const rawString = fs.readFileSync(filePath, 'utf-8');
       if (rawString) {
         bookData = JSON.parse(rawString);
       }
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error(`Error loading JSON for book ${book.id}:`, e); }
     
     const chapterVerseCounts = {};
     if (bookData) {
