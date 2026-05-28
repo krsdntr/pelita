@@ -39,8 +39,15 @@
     </div>
     
     <div id="coco-loading-state" class="hidden">
-      <div class="spinner"></div>
-      <span class="type-label-md" id="coco-loading-text">Menyiapkan sumber hikmat...</span>
+      <div class="coco-progress-wrap">
+        <div class="coco-progress-header">
+          <span class="type-label-md" id="coco-loading-text">Memuat Kompendium...</span>
+          <span class="type-label-md" id="coco-progress-pct">0%</span>
+        </div>
+        <div class="coco-progress-bar-track">
+          <div class="coco-progress-bar-fill" id="coco-progress-fill"></div>
+        </div>
+      </div>
     </div>
 
     <div class="coco-footer">
@@ -204,24 +211,62 @@
     throw new Error(lastError || "Seluruh model AI gagal merespons.");
   };
 
+  const setProgress = (pct) => {
+    const fill = document.getElementById('coco-progress-fill');
+    const label = document.getElementById('coco-progress-pct');
+    if (fill) fill.style.width = `${pct}%`;
+    if (label) label.textContent = `${Math.round(pct)}%`;
+  };
+
   const loadData = async () => {
     if (isDataLoaded || isFetchingData) return;
     isFetchingData = true;
     loadingState.classList.remove('hidden');
     loadingText.textContent = "Memuat Kompendium...";
+    setProgress(0);
     
     try {
       const resComp = await fetch('/data/catechism-compendium.json');
       if (!resComp.ok) throw new Error('Gagal mengunduh kompendium');
-      compendiumData = await resComp.json();
+
+      // Track download progress via ReadableStream
+      const contentLength = resComp.headers.get('Content-Length');
+      const total = contentLength ? parseInt(contentLength) : 520367; // fallback to known size
+      let received = 0;
+      const reader = resComp.body.getReader();
+      const chunks = [];
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+        received += value.length;
+        const pct = Math.min(98, (received / total) * 100);
+        setProgress(pct);
+      }
+
+      // Combine chunks and parse JSON
+      setProgress(99);
+      const allBytes = new Uint8Array(received);
+      let pos = 0;
+      for (const chunk of chunks) {
+        allBytes.set(chunk, pos);
+        pos += chunk.length;
+      }
+      const text = new TextDecoder().decode(allBytes);
+      compendiumData = JSON.parse(text);
+      setProgress(100);
       isDataLoaded = true;
     } catch (e) {
       console.error("Gagal memuat kompendium:", e);
-      isDataLoaded = true; // allow chat even without compendium
+      isDataLoaded = true;
     } finally {
       isFetchingData = false;
-      loadingState.classList.add('hidden');
-      chatInput.focus();
+      // Short delay so user sees 100%
+      setTimeout(() => {
+        loadingState.classList.add('hidden');
+        chatInput.focus();
+      }, 300);
     }
   };
 
@@ -495,16 +540,33 @@ ${compContext}
     font-size: 0.875rem;
     flex-shrink: 0;
   }
-  .spinner {
-    width: 20px;
-    height: 20px;
-    border: 2px solid var(--outline-variant);
-    border-top-color: var(--color-primary);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    flex-shrink: 0;
+
+  /* Progress bar */
+  .coco-progress-wrap {
+    width: 100%;
+    padding: 0 0.5rem;
   }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  .coco-progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    color: var(--on-surface-variant);
+  }
+  .coco-progress-bar-track {
+    width: 100%;
+    height: 6px;
+    background: var(--outline-variant);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .coco-progress-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--color-primary);
+    border-radius: 999px;
+    transition: width 0.25s ease-out;
+  }
 
   .coco-footer {
     padding: 1rem;
