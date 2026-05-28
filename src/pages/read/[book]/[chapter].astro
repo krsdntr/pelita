@@ -5,9 +5,33 @@ import Footer from '../../../components/Footer.astro';
 import books from '../../../data/bible-metadata.json';
 
 export async function getStaticPaths() {
+  // Load ALL book JSON files as raw strings at build time!
+  const rawFiles = import.meta.glob('../../../data/books/*.json', { query: '?raw', import: 'default', eager: true });
   
   const paths = [];
   books.forEach((book, bookIdx) => {
+    let bookData = null;
+    try {
+      const rawString = rawFiles[`../../../data/books/${book.id}.json`];
+      if (rawString) {
+        bookData = JSON.parse(rawString);
+      }
+    } catch (e) { console.error(e); }
+    
+    const chapterVerseCounts = {};
+    if (bookData) {
+      bookData.forEach(c => {
+        let maxV = 0;
+        if (c.verses) {
+          c.verses.forEach(v => {
+            const vNum = parseInt(v.verse) || 0;
+            if (vNum > maxV) maxV = vNum;
+          });
+        }
+        chapterVerseCounts[c.chapter] = maxV;
+      });
+    }
+
     const chapters = book.chapters;
     for (let i = 1; i <= chapters; i++) {
       
@@ -25,60 +49,41 @@ export async function getStaticPaths() {
         prevChapter = { bookId: books[bookIdx - 1].id, chapter: books[bookIdx - 1].chapters };
       }
 
+      let verses = [];
+      if (bookData) {
+        const chapterData = bookData.find((c: any) => String(c.chapter) === String(i));
+        if (chapterData && chapterData.verses) verses = chapterData.verses;
+      }
+
+      if (verses.length === 0) {
+        verses = [{ verse: 1, text: "Teks sedang diunduh atau tidak tersedia untuk saat ini." }];
+      }
+
       paths.push({
         params: { book: book.id, chapter: String(i) },
-        props: { book, chapter: i, nextChapter, prevChapter }
+        props: { 
+          book, 
+          chapter: i, 
+          nextChapter, 
+          prevChapter,
+          verses,
+          lastVerse: chapterVerseCounts[i] || 0,
+          chapterVerseCounts
+        }
       });
     }
   });
   return paths;
 }
 
-const { book, chapter, nextChapter, prevChapter } = Astro.props;
+const { book, chapter, nextChapter, prevChapter, verses, lastVerse, chapterVerseCounts } = Astro.props;
 
 import allBooks from '../../../data/bible-metadata.json';
-
-// Load verses from JSON
-let verses = [];
-const chapterVerseCounts = {};
-let lastVerse = 0;
-try {
-  const mod = await import(`../../../data/books/${book.id}.json`);
-  const bookData = mod.default;
-  
-  if (bookData) {
-    
-    // Build chapter verse counts mapping
-    bookData.forEach(c => {
-      let maxV = 0;
-      if (c.verses) {
-        c.verses.forEach(v => {
-          const vNum = parseInt(v.verse) || 0;
-          if (vNum > maxV) maxV = vNum;
-        });
-      }
-      chapterVerseCounts[c.chapter] = maxV;
-    });
-
-    const chapterData = bookData.find((c: any) => String(c.chapter) === String(chapter));
-    if (chapterData && chapterData.verses) {
-      verses = chapterData.verses;
-      lastVerse = chapterVerseCounts[chapter] || 0;
-    }
-  }
-} catch (e) {
-  console.error(e);
-}
-
-// Fallback if data is not available yet
-if (verses.length === 0) {
-  verses = [{ verse: 1, text: "Teks sedang diunduh atau tidak tersedia untuk saat ini." }];
-}
 
 // Group verses into paragraphs (artificial breaks for readability)
 const groups = [];
 let currentGroup = [];
-verses.forEach(v => {
+verses.forEach((v: any) => {
   if (v.type === 'heading') {
     if (currentGroup.length > 0) {
       groups.push({ type: 'paragraph', verses: currentGroup });
