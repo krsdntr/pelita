@@ -51,7 +51,7 @@ export async function getStaticPaths() {
 
       let verses = [];
       if (bookData) {
-        const chapterData = bookData.find((c: any) => String(c.chapter) === String(i));
+        const chapterData = bookData.find(c => String(c.chapter) === String(i));
         if (chapterData && chapterData.verses) verses = chapterData.verses;
       }
 
@@ -81,31 +81,31 @@ const { book, chapter, nextChapter, prevChapter, verses, lastVerse, chapterVerse
 import allBooks from '../../../data/bible-metadata.json';
 
 // Group verses into paragraphs (artificial breaks for readability)
-const groups = [];
-let currentGroup = [];
-verses.forEach((v: any) => {
+const verseBlocks = [];
+let currentBlock = [];
+verses.forEach(v => {
   if (v.type === 'heading') {
-    if (currentGroup.length > 0) {
-      groups.push({ type: 'paragraph', verses: currentGroup });
-      currentGroup = [];
+    if (currentBlock.length > 0) {
+      verseBlocks.push({ type: 'paragraph', verses: currentBlock });
+      currentBlock = [];
     }
-    groups.push({ type: 'heading', text: v.text });
+    verseBlocks.push({ type: 'heading', text: v.text });
   } else {
-    currentGroup.push(v);
+    currentBlock.push(v);
     
     // Create an artificial paragraph break if we have >= 5 verses
     // AND the current verse ends with a complete sentence (., ?, !) to prevent awkward splits.
     const text = (v.text || "").trim();
     const isEndOfSentence = /[.?!]["']?$/.test(text);
     
-    if (currentGroup.length >= 5 && isEndOfSentence) {
-      groups.push({ type: 'paragraph', verses: currentGroup });
-      currentGroup = [];
+    if (currentBlock.length >= 5 && isEndOfSentence) {
+      verseBlocks.push({ type: 'paragraph', verses: currentBlock });
+      currentBlock = [];
     }
   }
 });
-if (currentGroup.length > 0) {
-  groups.push({ type: 'paragraph', verses: currentGroup });
+if (currentBlock.length > 0) {
+  verseBlocks.push({ type: 'paragraph', verses: currentBlock });
 }
 ---
 
@@ -130,12 +130,12 @@ if (currentGroup.length > 0) {
 
     <!-- Verses List -->
     <article class="verses-container">
-      {groups.map(group => (
-        group.type === 'heading' ? (
-          <h3 class="chapter-heading">{group.text}</h3>
+      {verseBlocks.map(block => (
+        block.type === 'heading' ? (
+          <h3 class="chapter-heading">{block.text}</h3>
         ) : (
           <p class="chapter-paragraph">
-            {group.verses.map((v: any) => (
+            {block.verses.map(v => (
               <span class="verse-span" id={`v${v.verse}`}>
                 <sup class="verse-num">{v.verse}</sup>
                 <span class="verse-text">{v.text}</span>
@@ -195,7 +195,7 @@ if (currentGroup.length > 0) {
       </div>
       <div class="modal-body">
         <form id="modalJumpForm">
-          <div class="form-group">
+          <div class="form-block">
             <label for="modalJumpBook" class="type-label-md">Kitab</label>
             <select id="modalJumpBook" class="modal-select">
               {allBooks.map((b: any) => (
@@ -203,7 +203,7 @@ if (currentGroup.length > 0) {
               ))}
             </select>
           </div>
-          <div class="form-group">
+          <div class="form-block">
             <label for="modalJumpChapter" class="type-label-md">Bab</label>
             <select id="modalJumpChapter" class="modal-select">
               {Object.keys(chapterVerseCounts).sort((a,b)=>Number(a)-Number(b)).map(ch => (
@@ -211,7 +211,7 @@ if (currentGroup.length > 0) {
               ))}
             </select>
           </div>
-          <div class="form-group">
+          <div class="form-block">
             <label for="modalJumpVerse" class="type-label-md">Ayat</label>
             <select id="modalJumpVerse" class="modal-select">
               <!-- Populated by JS -->
@@ -416,10 +416,10 @@ if (currentGroup.length > 0) {
   .modal-body {
     padding: 1.5rem;
   }
-  .form-group {
+  .form-block {
     margin-bottom: 1.25rem;
   }
-  .form-group label {
+  .form-block label {
     display: block;
     margin-bottom: 0.5rem;
     color: var(--on-surface-variant);
