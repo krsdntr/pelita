@@ -15,7 +15,8 @@ export default defineConfig({
         globDirectory: 'dist',
         globPatterns: ['**/*.{js,css,svg,png,jpg,jpeg,gif,json,html,ico,txt,woff2}'],
         globIgnores: ['**/data/search-index.json'],
-        navigateFallback: null
+        navigateFallback: null,
+        maximumFileSizeToCacheInBytes: 6 * 1024 * 1024 // 6 MB to support large index files
       },
       manifest: {
         name: 'Pelita - Alkitab Online',

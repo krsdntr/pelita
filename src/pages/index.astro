@@ -4,6 +4,7 @@ import StatsHeader from '../components/StatsHeader.astro';
 import BookCard from '../components/BookCard.astro';
 import Footer from '../components/Footer.astro';
 import booksConfig from '../data/bible-metadata.json';
+import LiturgicalCalendar from '../components/LiturgicalCalendar.astro';
 
 // Group books by category & subCategory
 const groupedBooks = booksConfig.reduce((acc, book) => {
@@ -26,6 +27,8 @@ const categories = ["Perjanjian Lama", "Perjanjian Baru", "Deuterokanonika"];
         <h1 class="type-display-lg main-title">Rak Buku</h1>
         <p class="type-body-lg subtitle italic">"Firman-Mu itu pelita bagi kakiku dan terang bagi jalanku." — Mazmur 119:105</p>
       </div>
+
+      <LiturgicalCalendar />
 
       <!-- Spanduk Lanjutkan Penjelajahan (Resume Banner) -->
       <div id="resumeBanner" class="resume-banner" style="display: none;">

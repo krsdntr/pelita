@@ -1,0 +1,453 @@
+---
+// Catholic Liturgical Calendar Widget
+// Fetches daily liturgical data and displays it beautifully at the top of the bookshelf.
+---
+<liturgical-calendar>
+<div class="liturgical-widget" id="liturgicalWidget">
+  <!-- Accent bar tinted with liturgical color (updated via JS) -->
+  <div class="liturgical-accent" id="liturgicalAccent"></div>
+
+  <!-- Main Content Area -->
+  <div class="liturgical-content">
+    <header class="liturgical-header">
+      <div class="liturgical-meta">
+        <span class="type-label-md widget-tag">KALENDER LITURGI</span>
+        <div class="liturgical-color-badge" id="colorBadge">
+          <span class="color-dot" id="colorDot"></span>
+          <span class="color-text" id="colorText">Memuat...</span>
+        </div>
+      </div>
+
+      <!-- Navigation Arrows & Gregorian Date -->
+      <div class="liturgical-navigation">
+        <button class="nav-arrow-btn" id="prevDayBtn" aria-label="Hari Sebelumnya">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <span class="type-label-md liturgical-date" id="gregorianDate">...</span>
+        <button class="nav-arrow-btn" id="nextDayBtn" aria-label="Hari Selanjutnya">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Celebration/Saint Name -->
+    <div class="celebration-section">
+      <h2 class="type-title-lg celebration-title" id="celebrationTitle">Memuat data liturgi...</h2>
+    </div>
+
+    <!-- Readings List -->
+    <div class="readings-section">
+      <h4 class="type-label-md readings-label">BACAAN HARI INI</h4>
+      <div class="readings-grid" id="readingsGrid">
+        <!-- Skeleton loading placeholder -->
+        <div class="skeleton-reading"></div>
+        <div class="skeleton-reading"></div>
+        <div class="skeleton-reading"></div>
+      </div>
+      <div class="attribution-text type-label-md">
+        Sumber data: <a href="https://www.imankatolik.or.id" target="_blank" rel="noopener noreferrer">imankatolik.or.id</a>
+      </div>
+    </div>
+  </div>
+</div>
+</liturgical-calendar>
+
+<style>
+  .liturgical-widget {
+    background-color: var(--surface-container-low);
+    border: 1px solid var(--outline-variant);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    position: relative;
+    box-shadow: var(--shadow-ambient);
+    margin-bottom: 2.5rem;
+    transition: all var(--duration-normal) var(--ease-out-expo);
+    animation: fadeInWidget 0.6s var(--ease-out-expo);
+  }
+
+  @keyframes fadeInWidget {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Colored top accent bar */
+  .liturgical-accent {
+    height: 4px;
+    width: 100%;
+    background-color: var(--color-primary);
+    transition: background-color var(--duration-normal) var(--ease-out-expo);
+  }
+
+  .liturgical-content {
+    padding: 1.5rem 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .liturgical-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .liturgical-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .widget-tag {
+    color: var(--color-secondary);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
+  /* Color Badge styling */
+  .liturgical-color-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: var(--radius-full);
+    background-color: var(--surface-container);
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    color: var(--on-surface-variant);
+    text-transform: uppercase;
+    transition: all var(--duration-fast);
+  }
+
+  .color-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--color-secondary);
+    display: inline-block;
+    transition: background-color var(--duration-fast);
+  }
+
+  /* Date & Navigation */
+  .liturgical-navigation {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background-color: var(--surface-container-lowest);
+    border: 1px solid var(--outline-variant);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-full);
+  }
+
+  .liturgical-date {
+    color: var(--on-surface);
+    font-weight: 600;
+    min-width: 90px;
+    text-align: center;
+    user-select: none;
+  }
+
+  .nav-arrow-btn {
+    background: none;
+    border: none;
+    padding: 0.35rem;
+    border-radius: 50%;
+    cursor: pointer;
+    color: var(--on-surface-variant);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--duration-fast);
+  }
+
+  .nav-arrow-btn:hover {
+    background-color: var(--surface-container);
+    color: var(--on-surface);
+  }
+
+  .nav-arrow-btn:active {
+    transform: scale(0.9);
+  }
+
+  /* Celebration Title styling */
+  .celebration-section {
+    min-height: 2.2rem;
+    display: flex;
+    align-items: center;
+  }
+
+  .celebration-title {
+    color: var(--color-primary);
+    font-family: var(--font-serif);
+    font-weight: 700;
+    margin: 0;
+    font-size: 1.4rem;
+    line-height: 1.3;
+    transition: opacity var(--duration-fast) ease;
+  }
+
+  /* Readings grid styling */
+  .readings-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .readings-label {
+    color: var(--on-surface-variant);
+    opacity: 0.6;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+  }
+
+  .readings-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    transition: opacity var(--duration-fast) ease;
+  }
+
+  .attribution-text {
+    margin-top: 1rem;
+    opacity: 0.6;
+    color: var(--on-surface-variant);
+  }
+  .attribution-text a {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .attribution-text a:hover {
+    text-decoration: underline;
+  }
+
+  /* Individual reading button */
+  :global(.reading-pill) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    border-radius: var(--radius-lg);
+    background-color: var(--surface-container);
+    border: 1px solid var(--outline-variant);
+    color: var(--on-surface);
+    text-decoration: none;
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all var(--duration-fast);
+    cursor: pointer;
+  }
+
+  :global(.reading-pill:hover) {
+    background-color: var(--color-primary);
+    color: var(--on-primary);
+    border-color: var(--color-primary);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-subtle);
+  }
+
+  :global(.reading-pill.non-interactive) {
+    cursor: default;
+  }
+
+  :global(.reading-pill.non-interactive:hover) {
+    background-color: var(--surface-container);
+    color: var(--on-surface);
+    border-color: var(--outline-variant);
+    transform: none;
+    box-shadow: none;
+  }
+
+  :global(.bco-badge), :global(.injil-badge) {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.4rem;
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    transition: all var(--duration-fast);
+  }
+
+  :global(.bco-badge) {
+    background-color: rgba(68, 42, 34, 0.15);
+    color: var(--color-primary);
+  }
+
+  :global(.injil-badge) {
+    background-color: var(--color-secondary);
+    color: var(--on-primary);
+  }
+
+  :global(.reading-pill:hover .bco-badge) {
+    background-color: rgba(255, 255, 255, 0.25);
+    color: var(--on-primary);
+  }
+
+  /* Book Icon inside pill */
+  :global(.reading-icon) {
+    opacity: 0.6;
+    transition: transform var(--duration-fast);
+  }
+
+  :global(.reading-pill:hover .reading-icon) {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+
+  /* Skeleton Loaders */
+  .skeleton-reading {
+    width: 120px;
+    height: 36px;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(90deg, var(--surface-container) 25%, var(--surface-container-high) 50%, var(--surface-container) 75%);
+    background-size: 200% 100%;
+    animation: loadingShimmer 1.5s infinite linear;
+  }
+
+  @keyframes loadingShimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Shimmer animations on transition loading states */
+  .liturgical-widget.loading .celebration-title {
+    opacity: 0.5;
+  }
+
+  .liturgical-widget.loading .readings-grid {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+</style>
+
+<script>
+  class LiturgicalCalendar extends HTMLElement {
+    constructor() {
+      super();
+      this.dayOffset = 0;
+      
+      this.colorThemes = {
+        "hijau": { accent: "#2e7d32", dot: "#4caf50", label: "Masa Biasa" },
+        "putih": { accent: "#d4af37", dot: "#fbc02d", label: "Putih / Pesta" },
+        "kuning": { accent: "#d4af37", dot: "#fbc02d", label: "Putih / Pesta" },
+        "merah": { accent: "#c62828", dot: "#e53935", label: "Merah / Martir" },
+        "ungu": { accent: "#6a1b9a", dot: "#ab47bc", label: "Ungu / Adven / Prapaskah" },
+        "hitam": { accent: "#212121", dot: "#424242", label: "Hitam / Berkabung" },
+        "merah muda": { accent: "#d81b60", dot: "#ec407a", label: "Merah Muda / Gaudete" }
+      };
+    }
+
+    connectedCallback() {
+      // Setup elements
+      this.widget = this.querySelector('#liturgicalWidget');
+      this.accent = this.querySelector('#liturgicalAccent');
+      this.colorBadge = this.querySelector('#colorBadge');
+      this.colorDot = this.querySelector('#colorDot');
+      this.colorText = this.querySelector('#colorText');
+      this.gregorianDate = this.querySelector('#gregorianDate');
+      this.celebrationTitle = this.querySelector('#celebrationTitle');
+      this.readingsGrid = this.querySelector('#readingsGrid');
+
+      this.prevBtn = this.querySelector('#prevDayBtn');
+      this.nextBtn = this.querySelector('#nextDayBtn');
+
+      // Bind events
+      this.prevBtn?.addEventListener('click', () => {
+        this.dayOffset -= 1;
+        this.fetchLiturgicalData(this.dayOffset);
+      });
+
+      this.nextBtn?.addEventListener('click', () => {
+        this.dayOffset += 1;
+        this.fetchLiturgicalData(this.dayOffset);
+      });
+
+      // Initial load
+      this.fetchLiturgicalData(this.dayOffset);
+    }
+
+    async fetchLiturgicalData(offset) {
+      if (this.widget) this.widget.classList.add('loading');
+      
+      try {
+        const res = await fetch(`/api/liturgi?d=${offset}`);
+        if (!res.ok) throw new Error("Gagal mengambil data");
+        const data = await res.json();
+        
+        this.renderLiturgi(data);
+      } catch (err) {
+        console.error(err);
+        if (this.celebrationTitle) this.celebrationTitle.textContent = "Gagal memuat kalender liturgi";
+      } finally {
+        if (this.widget) this.widget.classList.remove('loading');
+      }
+    }
+
+    renderLiturgi(data) {
+      if (!data) return;
+
+      if (this.gregorianDate) this.gregorianDate.textContent = data.date || "...";
+
+      if (this.celebrationTitle) {
+        this.celebrationTitle.style.opacity = '0';
+        setTimeout(() => {
+          this.celebrationTitle.textContent = data.celebration || "Hari Biasa";
+          this.celebrationTitle.style.opacity = '1';
+        }, 100);
+      }
+
+      const rawColor = (data.liturgicalColor || "hijau").toLowerCase();
+      const theme = this.colorThemes[rawColor] || this.colorThemes["hijau"];
+
+      if (this.accent) this.accent.style.backgroundColor = theme.accent;
+      if (this.colorDot) this.colorDot.style.backgroundColor = theme.dot;
+      if (this.colorText) this.colorText.textContent = data.liturgicalColor || "Hijau";
+
+      if (this.readingsGrid) {
+        this.readingsGrid.style.opacity = '0';
+        setTimeout(() => {
+          if (!data.readings || data.readings.length === 0) {
+            this.readingsGrid.innerHTML = `<span class="type-label-md" style="opacity: 0.6;">Tidak ada bacaan terjadwal.</span>`;
+          } else {
+            this.readingsGrid.innerHTML = data.readings.map((r) => {
+              const bcoTag = r.isBcO ? '<span class="bco-badge">BcO</span>' : '';
+              const isInjil = ['mat', 'mrk', 'luk', 'yoh'].includes(r.bookId);
+              const injilTag = isInjil ? '<span class="injil-badge">Injil</span>' : '';
+              const badges = bcoTag + injilTag;
+              
+              if (r.internalLink) {
+                return `
+                  <a href="${r.internalLink}" class="reading-pill">
+                    <svg class="reading-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                    </svg>
+                    <span>${r.text}</span>
+                    ${badges}
+                  </a>
+                `;
+              } else {
+                return `
+                  <div class="reading-pill non-interactive">
+                    <span>${r.text}</span>
+                    ${badges}
+                  </div>
+                `;
+              }
+            }).join('');
+          }
+          this.readingsGrid.style.opacity = '1';
+        }, 100);
+      }
+    }
+  }
+
+  customElements.define('liturgical-calendar', LiturgicalCalendar);
+</script>
