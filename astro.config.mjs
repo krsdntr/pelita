@@ -14,41 +14,18 @@ export default defineConfig({
       workbox: {
         globDirectory: 'dist',
         globPatterns: ['**/*.{js,css,svg,png,jpg,jpeg,gif,json,html,ico,txt,woff2}'],
-        maximumFileSizeToCacheInBytes: 10000000,
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts-cache',
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365
-              },
-              cacheableResponse: {
-                statuses: [0, 200]
-              }
-            }
-          }
-        ]
+        navigateFallback: null
       },
       manifest: {
-        name: 'Alkitab Statis',
-        short_name: 'Alkitab',
-        description: 'Aplikasi Alkitab modern bebas koneksi',
-        theme_color: '#1a1a1a',
-        background_color: '#1a1a1a',
-        display: 'standalone',
+        name: 'Pelita - Alkitab Online',
+        short_name: 'Pelita',
+        description: 'Aplikasi Alkitab online yang cepat dan ringan.',
+        theme_color: '#ffffff',
         icons: [
           {
-            src: 'pwa-192x192.png',
+            src: '/favicon.svg',
             sizes: '192x192',
-            type: 'image/png'
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png'
+            type: 'image/svg+xml'
           }
         ]
       }

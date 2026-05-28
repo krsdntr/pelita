@@ -43,9 +43,8 @@ let verses = [];
 const chapterVerseCounts = {};
 let lastVerse = 0;
 try {
-  const allBooksData = import.meta.glob('../../../data/books/*.json', { eager: true });
-  const bookDataPath = `../../../data/books/${book.id}.json`;
-  const bookData = allBooksData[bookDataPath] ? allBooksData[bookDataPath].default : null;
+  const mod = await import(`../../../data/books/${book.id}.json`);
+  const bookData = mod.default;
   
   if (bookData) {
     
