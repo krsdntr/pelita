@@ -7,8 +7,9 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build && node postbuild.mjs",
-    "preview": "astro preview",
+    "start": "astro dev",
+    "build": "rm -rf node_modules/.vite node_modules/.astro && astro build && node postbuild.mjs",
+    "preview": "npm run build && wrangler pages dev dist",
     "astro": "astro"
   },
   "dependencies": {
