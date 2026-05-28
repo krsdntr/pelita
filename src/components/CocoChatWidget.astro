@@ -209,25 +209,36 @@
     if (isDataLoaded || isFetchingData) return;
     isFetchingData = true;
     loadingState.classList.remove('hidden');
-    chatInput.disabled = true;
     
     try {
       loadingText.textContent = "Mengunduh Kompendium...";
       const resComp = await fetch('/data/catechism-compendium.json');
       compendiumData = await resComp.json();
 
-      loadingText.textContent = "Mengunduh Indeks Alkitab (~6MB)...";
-      const resBible = await fetch('/data/search-index.json');
-      bibleData = await resBible.json();
+      loadingText.textContent = "Menyiapkan Indeks Alkitab...";
       
-      isDataLoaded = true;
+      isDataLoaded = true; // Prevent retry loop
+      
+      fetch('/data/search-index.json')
+        .then(res => {
+            if (!res.ok) throw new Error("HTTP error " + res.status);
+            return res.json();
+        })
+        .then(data => {
+            bibleData = data;
+            loadingState.classList.add('hidden');
+        })
+        .catch(err => {
+            console.warn("Gagal memuat indeks Alkitab:", err);
+            loadingState.classList.add('hidden');
+        });
+        
     } catch (e) {
-      console.error("Gagal memuat data:", e);
-      appendMessage("Maaf, gagal memuat sumber referensi. Mohon periksa koneksi internet Anda.", "assistant");
+      console.error("Gagal memuat kompendium:", e);
+      loadingState.classList.add('hidden');
+      isDataLoaded = true;
     } finally {
       isFetchingData = false;
-      loadingState.classList.add('hidden');
-      chatInput.disabled = currentRemaining <= 0;
       if (!chatInput.disabled) chatInput.focus();
     }
   };
