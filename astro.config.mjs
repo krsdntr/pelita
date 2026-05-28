@@ -1,8 +1,11 @@
 import { defineConfig } from 'astro/config';
 import AstroPWA from '@vite-pwa/astro';
+import cloudflare from '@astrojs/cloudflare';
 
 // https://astro.build/config
 export default defineConfig({
+  output: 'static',
+  adapter: cloudflare(),
   integrations: [
     AstroPWA({
       registerType: 'autoUpdate',

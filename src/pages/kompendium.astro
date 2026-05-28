@@ -2,16 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import StatsHeader from '../components/StatsHeader.astro';
 import Footer from '../components/Footer.astro';
-import fs from 'fs';
-import path from 'path';
-
-const catechismPath = path.resolve('./src/data/catechism-compendium.json');
-let compendium = [];
-try {
-  compendium = JSON.parse(fs.readFileSync(catechismPath, 'utf8'));
-} catch (e) {
-  console.error("Gagal memuat katekismus-compendium.json:", e);
-}
+import compendium from '../data/catechism-compendium.json';
 ---
 
 <Layout title="Kompendium" description="Pelajari dasar-dasar iman Katolik melalui Kompendium Katekismus Gereja Katolik secara interaktif dan mendalam.">

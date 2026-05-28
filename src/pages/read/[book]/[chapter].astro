@@ -2,12 +2,9 @@
 import Layout from '../../../layouts/Layout.astro';
 import StatsHeader from '../../../components/StatsHeader.astro';
 import Footer from '../../../components/Footer.astro';
-import fs from 'fs';
-import path from 'path';
+import books from '../../../data/bible-metadata.json';
 
 export async function getStaticPaths() {
-  const metaPath = path.resolve('./src/data/bible-metadata.json');
-  const books = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
   
   const paths = [];
   books.forEach((book, bookIdx) => {
@@ -39,23 +36,18 @@ export async function getStaticPaths() {
 
 const { book, chapter, nextChapter, prevChapter } = Astro.props;
 
-// Load all books metadata
-let allBooks = [];
-try {
-  const metaPath = path.resolve('./src/data/bible-metadata.json');
-  if (fs.existsSync(metaPath)) {
-    allBooks = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
-  }
-} catch (e) { console.error(e); }
+import allBooks from '../../../data/bible-metadata.json';
 
 // Load verses from JSON
 let verses = [];
 const chapterVerseCounts = {};
 let lastVerse = 0;
 try {
-  const bookDataPath = path.resolve(`./src/data/books/${book.id}.json`);
-  if (fs.existsSync(bookDataPath)) {
-    const bookData = JSON.parse(fs.readFileSync(bookDataPath, 'utf8'));
+  const allBooksData = import.meta.glob('../../../data/books/*.json', { eager: true });
+  const bookDataPath = `../../../data/books/${book.id}.json`;
+  const bookData = allBooksData[bookDataPath] ? allBooksData[bookDataPath].default : null;
+  
+  if (bookData) {
     
     // Build chapter verse counts mapping
     bookData.forEach(c => {
