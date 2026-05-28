@@ -14,7 +14,8 @@ export default defineConfig({
       workbox: {
         globDirectory: 'dist',
         globPatterns: ['**/*.{js,css,svg,png,jpg,jpeg,gif,json,html,ico,txt,woff2}'],
-        navigateFallback: null
+        navigateFallback: null,
+        maximumFileSizeToCacheInBytes: 10485760
       },
       manifest: {
         name: 'Pelita - Alkitab Online',
