@@ -469,35 +469,34 @@ ${compContext}
     min-width: 0;
   }
 
-  /* Chat messages */
-  .chat-message {
+  /* Chat messages — must use :global() because elements are created dynamically via JS */
+  :global(.chat-message) {
     display: flex;
     flex-direction: column;
     max-width: 100%;
   }
-  .chat-message.user {
+  :global(.chat-message.user) {
     align-items: flex-end;
     align-self: flex-end;
   }
-  .chat-message.assistant {
+  :global(.chat-message.assistant) {
     align-items: flex-start;
     align-self: flex-start;
   }
 
-  .message-bubble {
+  :global(.message-bubble) {
     padding: 0.875rem 1.25rem;
     max-width: 85%;
     word-wrap: break-word;
     overflow-wrap: break-word;
-    /* Prevent content from breaking out of bubble */
     min-width: 0;
   }
-  .user-bubble {
+  :global(.user-bubble) {
     border-radius: var(--radius-md) var(--radius-md) 0 var(--radius-md);
     background: var(--color-primary);
     color: white;
   }
-  .assistant-bubble {
+  :global(.assistant-bubble) {
     border-radius: 0 var(--radius-md) var(--radius-md) var(--radius-md);
     background: var(--surface-container-high);
     color: var(--on-surface);
