@@ -76,7 +76,6 @@
   const MAX_DAILY_MESSAGES = 20;
 
   let compendiumData = null;
-  let bibleData = null;
   let isDataLoaded = false;
   let isFetchingData = false;
 
@@ -174,23 +173,6 @@
     return matches.slice(0, 3).map(m => m.text).join("\n\n");
   };
 
-  const searchBibleContext = (query) => {
-    if (!bibleData) return "";
-    const keywords = query.toLowerCase().replace(/[^\w\s]/gi, '').split(' ').filter(w => w.length > 2 && !getStopWords().includes(w));
-    if (keywords.length === 0) keywords.push(query.toLowerCase());
-
-    let matches = [];
-    bibleData.forEach(verse => {
-      let score = 0;
-      const vText = verse.t.toLowerCase();
-      keywords.forEach(kw => {
-        if (vText.includes(kw)) score += 1;
-      });
-      if (score > 0) matches.push({ score, text: `Kitab: ${verse.n} ${verse.c}:${verse.v}\nTeks: ${verse.t}` });
-    });
-    matches.sort((a, b) => b.score - a.score);
-    return matches.slice(0, 5).map(m => m.text).join("\n\n");
-  };
 
   const GROQ_MODELS = [
     "llama-3.3-70b-versatile",
@@ -226,31 +208,20 @@
     if (isDataLoaded || isFetchingData) return;
     isFetchingData = true;
     loadingState.classList.remove('hidden');
+    loadingText.textContent = "Memuat Kompendium...";
     
     try {
-      loadingText.textContent = "Mengunduh Kompendium...";
       const resComp = await fetch('/data/catechism-compendium.json');
+      if (!resComp.ok) throw new Error('Gagal mengunduh kompendium');
       compendiumData = await resComp.json();
-
       isDataLoaded = true;
-      loadingState.classList.add('hidden');
-      chatInput.focus();
-      
-      // Fetch Bible index silently in background
-      fetch('/data/search-index.json')
-        .then(res => {
-            if (!res.ok) throw new Error("HTTP error " + res.status);
-            return res.json();
-        })
-        .then(data => { bibleData = data; })
-        .catch(err => { console.warn("Gagal memuat indeks Alkitab:", err); });
-        
     } catch (e) {
       console.error("Gagal memuat kompendium:", e);
-      loadingState.classList.add('hidden');
-      isDataLoaded = true;
+      isDataLoaded = true; // allow chat even without compendium
     } finally {
       isFetchingData = false;
+      loadingState.classList.add('hidden');
+      chatInput.focus();
     }
   };
 
@@ -269,19 +240,19 @@
       await new Promise(r => setTimeout(r, 10));
       
       const compContext = searchCatechismContext(text);
-      const bibleContext = searchBibleContext(text);
       
-      const systemPrompt = `Anda adalah COCO (Compendium Companion), asisten Katolik virtual di "The Sacred Library". 
-Jawablah dengan penuh kasih, ringkas, dan berwibawa.
+      const systemPrompt = `Anda adalah COCO (Compendium Companion), asisten Katolik virtual di aplikasi "Pelita". 
+Jawablah dengan penuh kasih, ringkas, dan berwibawa dalam Bahasa Indonesia.
 
-ATURAN SITASI WAJIB:
-- Jika Anda mengutip dari Alkitab atau Kompendium dari konteks di bawah ini, Anda WAJIB mencantumkan referensinya di akhir kalimat/jawaban Anda (misal: "Menurut Kejadian 1:1..." atau "Bdk. KGK 123").
-- Jangan berhalusinasi. Jawablah sesuai konteks yang disediakan atau teologi Katolik yang benar. Jika di luar ajaran, tolak dengan halus.
+ANDA BERBASIS PADA:
+- Kompendium Katekismus Gereja Katolik (KGK)
+- Pengetahuan teologi Katolik yang benar
 
-KONTEKS ALKITAB:
----
-${bibleContext}
----
+ATURAN WAJIB:
+- Jika Anda mengutip dari Kompendium dalam konteks di bawah, WAJIB cantumkan referensinya (misal: "Bdk. KGK 123" atau "Kompendium no. 45").
+- Jika menyebut ayat Alkitab, tulis referensinya dengan benar (misal: "Yoh 3:16", "Kej 1:1").
+- Jangan berhalusinasi. Jika pertanyaan di luar ajaran Katolik, tolak dengan sopan.
+- Jawaban RINGKAS dan JELAS. Hindari bullet point berlebihan.
 
 KONTEKS KOMPENDIUM:
 ---
