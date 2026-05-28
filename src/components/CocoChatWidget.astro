@@ -18,9 +18,14 @@
         <h3 class="type-title-md">COCO</h3>
         <p class="type-label-md">Compendium Companion &amp; Bible AI</p>
       </div>
-      <button id="coco-close-btn" aria-label="Tutup COCO">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-      </button>
+      <div style="display: flex; gap: 0.25rem; align-items: center;">
+        <button id="coco-max-btn" aria-label="Perbesar COCO" title="Perbesar tampilan">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+        </button>
+        <button id="coco-close-btn" aria-label="Tutup COCO">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
     </div>
     
     <div id="coco-chat-history" class="coco-body">
@@ -59,6 +64,7 @@
   const fab = document.getElementById('coco-fab');
   const modal = document.getElementById('coco-chat-modal');
   const closeBtn = document.getElementById('coco-close-btn');
+  const maxBtn = document.getElementById('coco-max-btn');
   const chatInput = document.getElementById('coco-chat-input') as HTMLInputElement;
   const chatSendBtn = document.getElementById('coco-send-btn') as HTMLButtonElement;
   const chatHistory = document.getElementById('coco-chat-history');
@@ -219,6 +225,9 @@
       
       isDataLoaded = true; // Prevent retry loop
       
+      // Sembunyikan state loading agar user tidak melihat putaran tanpa henti
+      loadingState.classList.add('hidden');
+      
       fetch('/data/search-index.json')
         .then(res => {
             if (!res.ok) throw new Error("HTTP error " + res.status);
@@ -226,11 +235,9 @@
         })
         .then(data => {
             bibleData = data;
-            loadingState.classList.add('hidden');
         })
         .catch(err => {
             console.warn("Gagal memuat indeks Alkitab:", err);
-            loadingState.classList.add('hidden');
         });
         
     } catch (e) {
@@ -313,6 +320,19 @@ ${compContext}
     fab.classList.remove('hidden');
   });
 
+  let isMaximized = false;
+  maxBtn.addEventListener('click', () => {
+    isMaximized = !isMaximized;
+    if (isMaximized) {
+      modal.classList.add('maximized');
+      maxBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>';
+    } else {
+      modal.classList.remove('maximized');
+      maxBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>';
+    }
+    chatInput.focus();
+  });
+
   chatSendBtn.addEventListener('click', handleSendMessage);
   chatInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') handleSendMessage();
@@ -368,6 +388,17 @@ ${compContext}
     z-index: 10000;
     overflow: hidden;
     border: 1px solid var(--outline-variant);
+    transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+  }
+  #coco-chat-modal.maximized {
+    width: 100vw;
+    height: 100vh;
+    max-width: 100vw;
+    max-height: 100vh;
+    bottom: 0;
+    right: 0;
+    border-radius: 0;
+    border: none;
   }
   #coco-chat-modal.hidden {
     display: none;
@@ -389,7 +420,7 @@ ${compContext}
     margin: 0;
     opacity: 0.8;
   }
-  #coco-close-btn {
+  #coco-close-btn, #coco-max-btn {
     background: none;
     border: none;
     color: white;
@@ -398,8 +429,11 @@ ${compContext}
     padding: 0.5rem;
     border-radius: 50%;
     transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
-  #coco-close-btn:hover {
+  #coco-close-btn:hover, #coco-max-btn:hover {
     opacity: 1;
     background: rgba(255,255,255,0.1);
   }
