@@ -6,7 +6,8 @@ import cloudflare from '@astrojs/cloudflare';
 export default defineConfig({
   output: 'static',
   adapter: cloudflare({
-    imageService: 'cloudflare'
+    imageService: 'cloudflare',
+    mode: 'directory'
   }),
   integrations: [
     AstroPWA({
