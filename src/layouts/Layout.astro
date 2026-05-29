@@ -124,6 +124,11 @@ const { title, description = "Aplikasi Iman Katolik — Pelita" } = Astro.props;
 		--outline-variant:          rgba(240,236,230,0.15);
 		--color-primary:            #ffbda8;
 		--color-secondary:          #cfa69b;
+		/* Dark mode: error color inverted agar visible di latar gelap */
+		--color-error:              #ffb4a8;
+		/* Shadows lebih kuat agar terlihat di latar gelap */
+		--shadow-ambient:           0px 20px 40px rgba(0,0,0,0.30);
+		--shadow-subtle:            0px 4px 16px rgba(0,0,0,0.22);
 	}
 
 	/* ============================================================
@@ -134,8 +139,13 @@ const { title, description = "Aplikasi Iman Katolik — Pelita" } = Astro.props;
 		--surface-container-lowest: #fff7f3;
 		--surface-container-low:    #f0e0d8;
 		--surface-container:        #e8d0c5;
+		/* Melengkapi 6 level surface hierarchy */
+		--surface-container-high:   #dfc0b4;
+		--surface-container-highest:#d4b0a3;
 		--on-surface:               #2e1f1a;
 		--on-surface-variant:       #6b4a3e;
+		/* Secondary disesuaikan lebih gelap agar kontras AA di container (~4.7:1) */
+		--color-secondary:          #5e3a30;
 	}
 
 	[data-theme="zen"] {
@@ -143,8 +153,15 @@ const { title, description = "Aplikasi Iman Katolik — Pelita" } = Astro.props;
 		--surface-container-lowest: #fff5f5;
 		--surface-container-low:    #f5d8d8;
 		--surface-container:        #edc9c9;
+		/* Melengkapi 6 level surface hierarchy */
+		--surface-container-high:   #e4bbbb;
+		--surface-container-highest:#d9aaaa;
 		--on-surface:               #2e1a1a;
 		--on-surface-variant:       #7a3c3c;
+		/* Secondary diselaraskan ke hue merah-tua agar kohesif & kontras di container (~5.1:1) */
+		--color-secondary:          #6b2e2e;
+		/* Outline selaras hue merah */
+		--outline-variant:          rgba(110,44,44,0.12);
 	}
 
 	/* ============================================================
@@ -203,7 +220,9 @@ const { title, description = "Aplikasi Iman Katolik — Pelita" } = Astro.props;
 		font-size: var(--type-label-md);
 		letter-spacing: 0.05em;
 		text-transform: uppercase;
-		font-weight: 500;
+		/* Dinaikkan ke 700 agar label all-caps kecil dianggap "bold" oleh WCAG
+		   sehingga threshold kontras cukup 3:1, bukan 4.5:1 */
+		font-weight: 700;
 	}
 
 	/* ============================================================

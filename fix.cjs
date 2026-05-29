@@ -1,0 +1,1 @@
+const fs = require('fs'); const content = fs.readFileSync('src/pages/read/[book]/[chapter].astro', 'utf8'); fs.writeFileSync('src/pages/read/[book]/[chapter].astro', content.replace(/\xA0/g, ' ').replace(/\r\n/g, '\n'));  

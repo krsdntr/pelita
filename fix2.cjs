@@ -1,0 +1,1 @@
+const fs = require('fs'); let content = fs.readFileSync('src/pages/read/[book]/[chapter].astro', 'utf8'); content = content.replace(/groups/g, 'verseBlocks'); content = content.replace(/currentGroup/g, 'currentBlock'); content = content.replace(/group/g, 'block'); fs.writeFileSync('src/pages/read/[book]/[chapter].astro', content);  
