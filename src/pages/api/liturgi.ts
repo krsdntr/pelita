@@ -20,7 +20,9 @@ const bookMapping: Record<string, string> = {
   "yudas": "yud-sb", "why": "why"
 };
 
-export async function GET({ url }) {
+import type { APIContext } from 'astro';
+
+export async function GET({ url }: APIContext) {
   const d = url.searchParams.get("d") || "0";
   const targetUrl = `https://www.imankatolik.or.id/kalender_share_kecil.php?d=${encodeURIComponent(d)}`;
 

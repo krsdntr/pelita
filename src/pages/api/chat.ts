@@ -1,8 +1,10 @@
-import { env } from "cloudflare:workers";
+import type { APIContext } from 'astro';
 
 export const prerender = false;
 
-export async function POST({ request }) {
+export async function POST({ request, locals }: APIContext) {
+  // @ts-ignore - locals.runtime.env contains Cloudflare bindings
+  const env = (locals.runtime?.env as any) || import.meta.env || {};
   const apiKey = env.GROQ_API_KEY;
   
   if (!apiKey) {
@@ -13,7 +15,7 @@ export async function POST({ request }) {
   }
 
   try {
-    const body = await request.json();
+    const body = (await request.json()) as { messages?: any[]; model?: string };
     
     // Validate request body
     if (!body || !body.messages) {
@@ -45,7 +47,7 @@ export async function POST({ request }) {
       headers: { "Content-Type": "application/json" }
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("[Edge API Error]:", error);
     return new Response(JSON.stringify({ error: "Internal Server Error", details: error.message }), {
       status: 500,
