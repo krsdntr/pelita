@@ -25,8 +25,8 @@ export async function POST({ request, locals }: APIContext) {
       });
     }
 
-    // Default to a fast model if not provided
-    const model = body.model || "llama-3.1-8b-instant";
+    // Default to Qwen model if not provided
+    const model = body.model || "qwen/qwen3.6-27b";
 
     const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -40,7 +40,13 @@ export async function POST({ request, locals }: APIContext) {
       })
     });
 
-    const data = await groqResponse.json();
+    const responseText = await groqResponse.text();
+    let data;
+    try {
+      data = responseText ? JSON.parse(responseText) : {};
+    } catch {
+      data = { error: { message: responseText || "Respon tak dikenal dari server Groq API." } };
+    }
 
     return new Response(JSON.stringify(data), {
       status: groqResponse.status,
@@ -49,7 +55,7 @@ export async function POST({ request, locals }: APIContext) {
 
   } catch (error: any) {
     console.error("[Edge API Error]:", error);
-    return new Response(JSON.stringify({ error: "Internal Server Error", details: error.message }), {
+    return new Response(JSON.stringify({ error: { message: error.message || "Internal Server Error" } }), {
       status: 500,
       headers: { "Content-Type": "application/json" }
     });
