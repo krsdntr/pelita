@@ -8,7 +8,7 @@ export async function POST({ request, locals }: APIContext) {
   const apiKey = env.GROQ_API_KEY;
   
   if (!apiKey) {
-    return new Response(JSON.stringify({ error: "API Key not configured on the server." }), {
+    return new Response(JSON.stringify({ error: { message: "GROQ_API_KEY belum dikonfigurasi di server." } }), {
       status: 500,
       headers: { "Content-Type": "application/json" }
     });
@@ -19,14 +19,14 @@ export async function POST({ request, locals }: APIContext) {
     
     // Validate request body
     if (!body || !body.messages) {
-      return new Response(JSON.stringify({ error: "Invalid request format." }), {
+      return new Response(JSON.stringify({ error: { message: "Format request tidak valid." } }), {
         status: 400,
         headers: { "Content-Type": "application/json" }
       });
     }
 
     // Default to Qwen model if not provided
-    const model = body.model || "qwen/qwen3.6-27b";
+    const model = body.model || "qwen-2.5-coder-32b";
 
     const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",

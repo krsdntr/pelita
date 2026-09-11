@@ -182,13 +182,17 @@
 
 
   const GROQ_MODELS = [
+    "qwen-2.5-coder-32b",
+    "qwen-2.5-72b-instruct",
     "qwen/qwen3.6-27b",
     "qwen/qwen3.8-27b",
     "openai/gpt-oss-120b",
     "openai/gpt-oss-20b",
     "groq/compound",
-    "groq/compound-mini",
-    "qwen-2.5-coder-32b"
+    "llama-3.3-70b-versatile",
+    "llama-3.1-8b-instant",
+    "deepseek-r1-distill-llama-70b",
+    "gemma2-9b-it"
   ];
 
   const fetchGroqChat = async (messages) => {
@@ -212,7 +216,16 @@
 
         if (res.ok && data.choices && data.choices[0]) return data;
         
-        lastError = data.error?.message || (typeof data.error === 'string' ? data.error : `HTTP ${res.status}`);
+        if (typeof data.error === 'string') {
+          lastError = data.error;
+        } else if (data.error?.message) {
+          lastError = data.error.message;
+        } else if (data.message) {
+          lastError = data.message;
+        } else {
+          lastError = `HTTP ${res.status}`;
+        }
+
         if (res.status === 401) break; 
         console.warn(`[COCO] Model ${model} gagal (${res.status}): ${lastError}. Beralih ke model berikutnya...`);
         continue;
