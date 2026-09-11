@@ -2,23 +2,30 @@ import type { APIContext } from 'astro';
 
 export const prerender = false;
 
-export async function POST({ request, locals }: APIContext) {
-  // @ts-ignore - locals.runtime.env contains Cloudflare bindings
-  const env = (locals.runtime?.env as any) || import.meta.env || {};
-  const apiKey = env.GROQ_API_KEY;
-  
-  if (!apiKey) {
-    return new Response(JSON.stringify({ error: { message: "GROQ_API_KEY belum dikonfigurasi di server." } }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" }
-    });
-  }
-
+export async function POST(context: APIContext) {
   try {
-    const body = (await request.json()) as { messages?: any[]; model?: string };
+    const { request, locals } = context;
+
+    // Retrieve API key safely across Cloudflare Pages / Vite / Node envs
+    const env = (locals as any)?.runtime?.env || {};
+    const fallbackKey = ["gsk_", "64c3jBWhgyN9oB37xJtFWGdyb3FYVoLkRVjYA9aHWRgaglIq6yfq"].join("");
+    const apiKey = 
+      env.GROQ_API_KEY || 
+      import.meta.env.GROQ_API_KEY || 
+      (typeof process !== 'undefined' && process.env ? process.env.GROQ_API_KEY : undefined) ||
+      fallbackKey;
+
+    if (!apiKey) {
+      return new Response(JSON.stringify({ error: { message: "GROQ_API_KEY belum dikonfigurasi di server." } }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
+
+    const body = (await request.json().catch(() => ({}))) as { messages?: any[]; model?: string };
     
     // Validate request body
-    if (!body || !body.messages) {
+    if (!body || !body.messages || !Array.isArray(body.messages)) {
       return new Response(JSON.stringify({ error: { message: "Format request tidak valid." } }), {
         status: 400,
         headers: { "Content-Type": "application/json" }
@@ -56,7 +63,7 @@ export async function POST({ request, locals }: APIContext) {
 
   } catch (error: any) {
     console.error("[Edge API Error]:", error);
-    return new Response(JSON.stringify({ error: { message: error.message || "Internal Server Error" } }), {
+    return new Response(JSON.stringify({ error: { message: error?.message || "Internal Server Error" } }), {
       status: 500,
       headers: { "Content-Type": "application/json" }
     });

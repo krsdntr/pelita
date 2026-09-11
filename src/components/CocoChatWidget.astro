@@ -218,7 +218,7 @@
         } else if (data.message) {
           lastError = data.message;
         } else {
-          lastError = `HTTP ${res.status}`;
+          lastError = rawText ? rawText.slice(0, 150) : `HTTP ${res.status}`;
         }
 
         if (res.status === 401) break; 
