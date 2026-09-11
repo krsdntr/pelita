@@ -4,16 +4,23 @@ export const prerender = false;
 
 export async function POST(context: APIContext) {
   try {
-    const { request, locals } = context;
+    const { request } = context;
 
-    // Retrieve API key safely across Cloudflare Pages / Vite / Node envs
-    const env = (locals as any)?.runtime?.env || {};
+    // Retrieve API key safely across Cloudflare Pages / Vite / Node envs (Astro v6 compatible)
     const fallbackKey = ["gsk_", "64c3jBWhgyN9oB37xJtFWGdyb3FYVoLkRVjYA9aHWRgaglIq6yfq"].join("");
-    const apiKey = 
-      env.GROQ_API_KEY || 
-      import.meta.env.GROQ_API_KEY || 
-      (typeof process !== 'undefined' && process.env ? process.env.GROQ_API_KEY : undefined) ||
-      fallbackKey;
+    
+    let apiKey: string | undefined;
+    try {
+      apiKey = import.meta.env.GROQ_API_KEY;
+    } catch {}
+
+    if (!apiKey && typeof process !== 'undefined' && process.env) {
+      apiKey = process.env.GROQ_API_KEY;
+    }
+
+    if (!apiKey) {
+      apiKey = fallbackKey;
+    }
 
     if (!apiKey) {
       return new Response(JSON.stringify({ error: { message: "GROQ_API_KEY belum dikonfigurasi di server." } }), {
