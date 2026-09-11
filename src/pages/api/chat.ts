@@ -14,8 +14,9 @@ export async function POST(context: APIContext) {
       apiKey = import.meta.env.GROQ_API_KEY;
     } catch {}
 
-    if (!apiKey && typeof process !== 'undefined' && process.env) {
-      apiKey = process.env.GROQ_API_KEY;
+    const proc = (globalThis as any).process;
+    if (!apiKey && proc?.env) {
+      apiKey = proc.env.GROQ_API_KEY;
     }
 
     if (!apiKey) {
