@@ -26,7 +26,7 @@ export async function POST({ request, locals }: APIContext) {
     }
 
     // Default to Qwen model if not provided
-    const model = body.model || "qwen-2.5-coder-32b";
+    const model = body.model || "qwen/qwen3.8-27b";
 
     const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -36,7 +36,8 @@ export async function POST({ request, locals }: APIContext) {
       },
       body: JSON.stringify({
         model: model,
-        messages: body.messages
+        messages: body.messages,
+        max_completion_tokens: 1000
       })
     });
 
